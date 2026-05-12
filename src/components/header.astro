@@ -1,12 +1,14 @@
 ---
-import Navbar from "../components/navbar.astro";
 ---
 
 <header class="flex-row">
-  <a href="/" aria-label="Inicio">
-    <img src="/img/logo-png-mini.avif" alt="Logo" class="logo" />
+  <a href="/" class="brand" aria-label="Inicio">
+    <img src="/favicon.svg" alt="" aria-hidden="true" class="brand-icon" />
+    <span>MACV GYM</span>
   </a>
-  <Navbar />
+  <button id="btn-open-create" class="btn-new-ex" aria-label="Nuevo ejercicio">
+    <i class="bi bi-plus-lg"></i>
+  </button>
 </header>
 
 <style>
@@ -15,40 +17,71 @@ import Navbar from "../components/navbar.astro";
     justify-content: space-between;
     position: sticky;
     top: 10px;
-    background: var(--header-bg-mobile);
-    box-shadow: var(--shadow-md);
+    background: var(--header-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     width: 95%;
-    height: 80px;
+    height: 70px;
     margin: 10px auto;
-    padding: 12px;
+    padding: 12px 16px;
     transition: var(--transition);
     z-index: 100;
   }
 
-  header a {
-    height: 100%;
-    margin-right: auto;
+  .brand {
     display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+    color: var(--clr-white);
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
   }
 
-  .logo {
-    height: 100%;
+  .brand .brand-icon {
+    height: 1.4rem;
     width: auto;
-    border-radius: 12px;
   }
 
-  @media (min-width: 750px) {
-    header {
-      background: var(--header-bg-desktop);
-      backdrop-filter: blur(5px);
-      width: 98%;
-    }
+  .btn-new-ex {
+    background: rgba(var(--rgb-accent), 0.12);
+    border: 1px solid rgba(var(--rgb-accent), 0.3);
+    border-radius: 10px;
+    color: var(--clr-accent);
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    height: 36px;
+    line-height: 1;
+    padding: 0 12px;
+    transition: var(--transition);
   }
 
   @media (hover: hover) {
     header:hover {
-      background-color: var(--clr-white);
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .btn-new-ex:hover {
+      background: rgba(var(--rgb-accent), 0.22);
+      border-color: rgba(var(--rgb-accent), 0.5);
+    }
+  }
+
+  @media (min-width: 750px) {
+    header {
+      width: 98%;
     }
   }
 </style>
+
+<script>
+  document.getElementById("btn-open-create")?.addEventListener("click", () => {
+    window.dispatchEvent(new CustomEvent("gym:open-create"));
+  });
+</script>

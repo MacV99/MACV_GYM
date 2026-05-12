@@ -2,9 +2,8 @@
   <i class="bi bi-list open-nav" aria-label="Abrir menú"></i>
 
   <div class="flex-column" id="overlay">
-    <a href="/">Inicio</a>
-    <a href="#servicios">Servicios</a>
-    <a href="#contacto">Contacto</a>
+    <a href="/">Rutina</a>
+    <a href="#tracker">Pesos</a>
     <i class="bi bi-x-lg close-nav" aria-label="Cerrar menú"></i>
   </div>
 </nav>
@@ -20,9 +19,9 @@
     position: fixed;
     inset: 0;
     gap: 7%;
-    background-color: var(--clr-primary-light);
-    background-image: radial-gradient(circle, rgba(var(--rgb-primary), 0.15) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-color: var(--clr-dark);
+    background-image: var(--dot-grid);
+    background-size: var(--dot-grid-size);
     z-index: 100;
   }
 
@@ -39,24 +38,22 @@
     cursor: pointer;
     border-radius: 10px;
     padding: 7px;
-    color: var(--clr-dark);
-    border: solid 1px var(--clr-gray);
-    background-color: var(--clr-white);
+    color: var(--clr-white);
+    border: solid 1px rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
   }
 
   #overlay a {
     font-size: 18px;
-    background-color: var(--clr-primary-light);
-    background-image: radial-gradient(circle, rgba(var(--rgb-primary), 0.15) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-color: rgba(255, 255, 255, 0.06);
     padding: 10px 17px;
-    border: solid 1px var(--clr-gray);
+    border: solid 1px rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     letter-spacing: 7px;
     width: 210px;
     text-align: center;
     text-transform: uppercase;
-    color: var(--clr-dark);
+    color: var(--clr-white);
   }
 
   @media (min-width: 750px) {
@@ -81,13 +78,19 @@
       font-size: 14px;
       letter-spacing: 0;
       width: auto;
+      color: rgba(255, 255, 255, 0.7);
       transition: var(--transition);
     }
   }
 
+  .open-nav {
+    color: var(--clr-white);
+  }
+
   @media (hover: hover) {
     #overlay a:hover {
-      background-color: var(--clr-gray);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--clr-white);
     }
   }
 </style>
@@ -100,13 +103,13 @@
 
     const open = () => {
       if (overlay) {
-        overlay.style.display = "flex";
+        overlay.classList.add("new-nav");
         document.body.style.overflow = "hidden";
       }
     };
 
     const close = () => {
-      if (overlay) overlay.style.display = "none";
+      overlay?.classList.remove("new-nav");
       document.body.style.overflow = "auto";
     };
 
