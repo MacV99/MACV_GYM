@@ -1,5 +1,5 @@
 ---
-const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-3STqFwUsAN47m2zjRKS6sw8V5G07zCzju-q0u4AF_X1d4Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwAzgf3dkXJLt0Yhh9l93sBkL1GVhwZ8jekaj6kVT8D_m2QLNXvw3UNc-aCGuJR135KCA/exec";
 ---
 
 <section id="tracker">
@@ -21,6 +21,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
 
   <div id="panels"></div>
 </section>
+
+<div id="gym-pills" aria-live="polite" aria-atomic="false"></div>
 
 <div id="modal-create" class="modal-overlay" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -172,6 +174,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
 
   /* ── PANELS ── */
   #panels {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
     max-width: 900px;
   }
@@ -203,17 +208,16 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     gap: 8px;
   }
 
-  /* ── EXERCISE CARD — mobile: row layout ── */
+  /* ── EXERCISE CARD ── */
   .exercise-card {
     background: rgba(255, 255, 255, 0.05);
     border: solid 1px rgba(255, 255, 255, 0.08);
     border-radius: 14px;
-    padding: 14px 16px;
+    padding: 16px;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
     transition: var(--transition);
   }
 
@@ -228,21 +232,27 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
-    flex: 1;
+    gap: 8px;
     min-width: 0;
   }
 
   .card-top h4 {
     color: var(--clr-white);
-    font-size: 0.8rem;
+    font-size: 0.88rem;
     letter-spacing: 1.5px;
     line-height: 1.2;
     font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
     max-width: 100%;
+  }
+
+  .card-grupo {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--clr-accent);
+    opacity: 0.75;
   }
 
   /* ── BADGES ── */
@@ -296,8 +306,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-shrink: 0;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   .metric {
@@ -599,7 +608,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
 
   /* ── MODAL ── */
   .modal-overlay {
-    align-items: center;
+    align-items: flex-start;
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -607,7 +616,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     display: flex;
     justify-content: center;
     left: 0;
-    padding: 16px;
+    padding: 24px 16px 16px;
     position: fixed;
     right: 0;
     top: 0;
@@ -667,6 +676,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
 
   @media (min-width: 750px) {
     .modal-overlay {
+      align-items: center;
       padding: 24px;
     }
 
@@ -712,6 +722,59 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     .metric-val {
       font-size: 1.1rem;
     }
+  }
+
+  /* ── PILLS ── */
+  #gym-pills {
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    left: 50%;
+    pointer-events: none;
+    position: fixed;
+    transform: translateX(-50%);
+    z-index: 500;
+  }
+
+  .gym-pill {
+    align-items: center;
+    animation: pill-in 0.25s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 100px;
+    display: flex;
+    font-size: 0.78rem;
+    font-weight: 600;
+    gap: 7px;
+    letter-spacing: 0.02em;
+    padding: 9px 16px;
+    white-space: nowrap;
+  }
+
+  .gym-pill-ok {
+    background: rgba(97, 195, 255, 0.18);
+    border: 1px solid rgba(97, 195, 255, 0.35);
+    color: var(--clr-accent);
+  }
+
+  .gym-pill-err {
+    background: rgba(255, 80, 80, 0.18);
+    border: 1px solid rgba(255, 80, 80, 0.35);
+    color: #ff6b6b;
+  }
+
+  .gym-pill-out {
+    animation: pill-out 0.2s ease forwards;
+  }
+
+  @keyframes pill-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pill-out {
+    to { opacity: 0; transform: translateY(6px); }
   }
 </style>
 
@@ -902,7 +965,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     `;
   }
 
-  function buildCard(grupoId, ej) {
+  function buildCard(grupoId, grupoNombre, ej) {
     const s    = slug(ej.equipo);
     const meta = EQUIPO_META[ej.equipo] ?? { label: ej.equipo.toUpperCase(), icon: "bi-dot" };
     return `
@@ -913,6 +976,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
         data-unidad="${ej.unidad ?? ""}"
       >
         <div class="card-top">
+          <span class="card-grupo">${grupoNombre}</span>
           <h4>${ej.nombre}</h4>
           <span class="badge badge-${s}">
             <i class="bi ${meta.icon}"></i>${meta.label}
@@ -1005,18 +1069,34 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     closeComboPortal();
   }
 
-  /* ── API ── */
-  async function postData(payload) {
-    await fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify(payload),
-    });
+  /* ── PILLS ── */
+  function showPill(msg, type = "ok") {
+    const pill = document.createElement("div");
+    pill.className = `gym-pill gym-pill-${type}`;
+    pill.innerHTML = `<i class="bi ${type === "ok" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"}"></i>${msg}`;
+    document.getElementById("gym-pills").appendChild(pill);
+    setTimeout(() => {
+      pill.classList.add("gym-pill-out");
+      pill.addEventListener("animationend", () => pill.remove(), { once: true });
+    }, 2500);
   }
 
-  async function saveEdit(form) {
+  /* ── API ── */
+  async function postData(payload) {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      mode: "cors",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+    return json;
+  }
+
+  function saveEdit(form) {
     const card = form.closest(".exercise-card");
-    const btn  = form.querySelector(".btn-save");
     const payload = {
       action:     "update",
       grupo_id:   card.dataset.grupo,
@@ -1028,40 +1108,33 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
       peso:    form.elements.peso.value || null,
     };
 
-    btn.disabled = true;
-    btn.textContent = "...";
+    updateCacheExercise(payload.grupo_id, payload.old_nombre, {
+      nombre: payload.nombre, equipo: payload.equipo,
+      series: payload.series, reps: payload.reps, peso: payload.peso,
+    });
 
-    try {
-      await postData(payload);
-      updateCacheExercise(payload.grupo_id, payload.old_nombre, {
-        nombre: payload.nombre, equipo: payload.equipo,
-        series: payload.series, reps: payload.reps, peso: payload.peso,
-      });
+    card.dataset.nombre = payload.nombre;
+    const s    = slug(payload.equipo);
+    const meta = EQUIPO_META[payload.equipo] ?? { label: payload.equipo.toUpperCase(), icon: "bi-dot" };
+    card.className = `exercise-card equipo-${s} editing`;
+    card.querySelector(".card-top h4").textContent = payload.nombre;
+    const badge = card.querySelector(".badge");
+    badge.className = `badge badge-${s}`;
+    badge.innerHTML = `<i class="bi ${meta.icon}"></i>${meta.label}`;
+    card.querySelector(".card-metrics").innerHTML = buildMetricsHtml({
+      series: payload.series, reps: payload.reps,
+      peso: payload.peso, unidad: card.dataset.unidad,
+    });
+    closeEdit(card);
 
-      card.dataset.nombre = payload.nombre;
-      const s    = slug(payload.equipo);
-      const meta = EQUIPO_META[payload.equipo] ?? { label: payload.equipo.toUpperCase(), icon: "bi-dot" };
-      card.className = `exercise-card equipo-${s} editing`;
-      card.querySelector(".card-top h4").textContent = payload.nombre;
-      const badge = card.querySelector(".badge");
-      badge.className = `badge badge-${s}`;
-      badge.innerHTML = `<i class="bi ${meta.icon}"></i>${meta.label}`;
-      card.querySelector(".card-metrics").innerHTML = buildMetricsHtml({
-        series: payload.series, reps: payload.reps,
-        peso: payload.peso, unidad: card.dataset.unidad,
-      });
-      form.elements.nombre.value = payload.nombre;
-      btn.textContent = "Guardado ✓";
-      setTimeout(() => closeEdit(card), 700);
-    } catch {
-      btn.textContent = "Error";
-      setTimeout(() => { btn.disabled = false; btn.textContent = "Guardar"; }, 2000);
-    }
+    postData(payload)
+      .then(() => showPill("Ejercicio editado"))
+      .catch(() => showPill("Error al guardar", "err"));
   }
 
-  async function createEjercicio(form) {
-    const btn     = form.querySelector(".btn-save");
-    const grupoId = form.elements.grupo_id.value;
+  function createEjercicio(form) {
+    const grupoId   = form.elements.grupo_id.value;
+    const grupoNombre = form.querySelector("[data-type='grupo'] .combo-input")?.value.trim() || grupoId;
     const ej = {
       nombre: form.elements.nombre.value.trim(),
       equipo: form.elements.equipo.value,
@@ -1072,21 +1145,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     };
     if (!ej.nombre || !grupoId) return;
 
-    btn.disabled = true;
-    btn.textContent = "...";
+    addCacheExercise(grupoId, ej);
+    document.querySelector(`#${grupoId} .exercise-grid`)
+      ?.insertAdjacentHTML("beforeend", buildCard(grupoId, grupoNombre, ej));
+    closeModal();
 
-    try {
-      await postData({ action: "create", grupo_id: grupoId, ...ej });
-      addCacheExercise(grupoId, ej);
-      document.querySelector(`#${grupoId} .exercise-grid`)
-        ?.insertAdjacentHTML("beforeend", buildCard(grupoId, ej));
-      closeModal();
-      btn.disabled = false;
-      btn.textContent = "Crear";
-    } catch {
-      btn.textContent = "Error";
-      setTimeout(() => { btn.disabled = false; btn.textContent = "Crear"; }, 2000);
-    }
+    postData({ action: "create", grupo_id: grupoId, grupo_nombre: grupoNombre, ...ej })
+      .then(() => showPill("Ejercicio creado"))
+      .catch(() => showPill("Error al crear", "err"));
   }
 
   /* ── DATA ── */
@@ -1106,9 +1172,10 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
   function renderGrupos(grupos) {
     const panelsEl = document.getElementById("panels");
     const select   = document.getElementById("grupo-select");
-    const activeId = select.value && select.value !== "todos"
-      ? select.value
-      : grupos[0]?.id;
+
+    const curVal  = select.value;
+    const validId = grupos.find(g => g.id === curVal)?.id ?? null;
+    const showAll = !validId;
 
     const total = grupos.reduce((s, g) => s + g.ejercicios.length, 0);
     document.getElementById("eyebrow-count").textContent =
@@ -1116,15 +1183,15 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
 
     select.disabled = false;
     select.innerHTML =
-      `<option value="todos">Todos</option>` +
+      `<option value="todos"${showAll ? " selected" : ""}>Todos</option>` +
       grupos.map(g =>
-        `<option value="${g.id}"${g.id === activeId ? " selected" : ""}>${g.nombre}</option>`
+        `<option value="${g.id}"${g.id === validId ? " selected" : ""}>${g.nombre}</option>`
       ).join("");
 
-    panelsEl.innerHTML = grupos.map((g, i) => `
-      <div id="${g.id}" class="muscle-panel${(g.id === activeId || i === 0) ? " active" : ""}" role="tabpanel">
+    panelsEl.innerHTML = grupos.map(g => `
+      <div id="${g.id}" class="muscle-panel${(showAll || g.id === validId) ? " active" : ""}" role="tabpanel">
         <div class="exercise-grid">
-          ${g.ejercicios.map(ej => buildCard(g.id, ej)).join("")}
+          ${g.ejercicios.map(ej => buildCard(g.id, g.nombre, ej)).join("")}
         </div>
       </div>
     `).join("");
@@ -1250,17 +1317,19 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw0OoCDbmSoaQ3CWC_--C8-
     if (g) { g.ejercicios = g.ejercicios.filter(e => e.nombre !== nombre); writeCache(gymData); }
   }
 
-  async function deleteEjercicio(card) {
+  function deleteEjercicio(card) {
     const grupoId = card.dataset.grupo;
     const nombre  = card.dataset.nombre;
-    try {
-      await postData({ action: "delete", grupo_id: grupoId, nombre });
-      deleteCacheExercise(grupoId, nombre);
-      card.remove();
-      const count = document.getElementById("eyebrow-count");
-      const total = gymData.reduce((s, g) => s + g.ejercicios.length, 0);
-      if (count) count.textContent = `${gymData.length} grupos · ${total} ejercicios`;
-    } catch { /* silencioso — API no-cors no devuelve error útil */ }
+
+    deleteCacheExercise(grupoId, nombre);
+    card.remove();
+    const count = document.getElementById("eyebrow-count");
+    const total = gymData.reduce((s, g) => s + g.ejercicios.length, 0);
+    if (count) count.textContent = `${gymData.length} grupos · ${total} ejercicios`;
+
+    postData({ action: "delete", grupo_id: grupoId, nombre })
+      .then(() => showPill("Ejercicio eliminado"))
+      .catch(() => showPill("Error al eliminar", "err"));
   }
 
   /* ── EVENT DELEGATION ── */
