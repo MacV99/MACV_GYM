@@ -1299,7 +1299,7 @@ const API_URL =
     const grupos = await fetchJSONP(API_URL);
     const changed = JSON.stringify(grupos) !== JSON.stringify(gymData);
     writeCache(grupos);
-    if (!cached || changed) renderGrupos(grupos);
+    if (!cached || changed) safeRender(grupos);
   }
 
   /* ── CONTEXT MENU PORTAL ── */
@@ -1328,12 +1328,12 @@ const API_URL =
     activeContextMenu = { menu, card };
 
     menu.querySelector(".ctx-edit").addEventListener("click", () => {
-      closeContextMenu();
       openEdit(card);
+      closeContextMenu();
     });
     menu.querySelector(".ctx-delete").addEventListener("click", () => {
-      closeContextMenu();
       deleteEjercicio(card);
+      closeContextMenu();
     });
   }
 
@@ -1342,12 +1342,32 @@ const API_URL =
       activeContextMenu.menu.remove();
       activeContextMenu = null;
     }
+    setTimeout(flushPending, 0);
   }
 
   document.addEventListener("pointerdown", (e) => {
     if (activeContextMenu && !e.target.closest(".card-context-menu"))
       closeContextMenu();
   });
+
+  /* ── PENDING RENDER (defer re-render while user is interacting) ── */
+  let pendingGrupos = null;
+
+  function safeRender(grupos) {
+    if (lpCard || activeContextMenu) {
+      pendingGrupos = grupos;
+      return;
+    }
+    pendingGrupos = null;
+    renderGrupos(grupos);
+  }
+
+  function flushPending() {
+    if (!pendingGrupos || lpCard || activeContextMenu) return;
+    const g = pendingGrupos;
+    pendingGrupos = null;
+    renderGrupos(g);
+  }
 
   /* ── LONG PRESS ── */
   let lpTimer = null;
@@ -1364,6 +1384,7 @@ const API_URL =
       lpCard.classList.remove("long-pressing");
       lpCard = null;
     }
+    flushPending();
   }
 
   const panels = document.getElementById("panels");
