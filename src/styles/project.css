@@ -2,25 +2,25 @@
 
 :root {
   /* ── PALETA DEL PROYECTO ── */
-  --clr-primary: #202020;
+  --clr-primary: #222222;
   --clr-primary-mid: color-mix(in oklch, var(--clr-primary) 90%, white);
   --clr-primary-light: color-mix(in oklch, var(--clr-primary) 8%, white);
 
-  --clr-accent: #22c55e;
+  --clr-accent: #c2d8c4;
 
   --clr-danger: #e11d48;
 
   /* ── NEUTROS ── */
-  --clr-dark: #191919;
-  --clr-dark2: #464646;
+  --clr-dark: #222222;
+  --clr-dark2: #3a3a3a;
   --clr-gray: #dcdcdc;
   --clr-white: #f4f4f4;
 
   --transition: all 0.2s ease;
 
   /* ── CANALES RGB DEL PROYECTO ── */
-  --rgb-primary: 32, 32, 32;
-  --rgb-accent: 34, 197, 94;
+  --rgb-primary: 34, 34, 34;
+  --rgb-accent: 194, 216, 196;
 
   /* ── DOT GRID ── */
   --dot-grid: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
