@@ -388,6 +388,57 @@ const API_URL =
     transform: scale(0.98);
   }
 
+  /* ── DRAG HANDLE / REORDER ── */
+  .card-top-right {
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .drag-handle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 0;
+    background: none;
+    border: none;
+    color: var(--clr-accent);
+    opacity: 0.45;
+    cursor: grab;
+    touch-action: none;
+    transition: var(--transition);
+  }
+
+  .drag-handle .bi {
+    font-size: 18px;
+  }
+
+  #panels.mode-single .drag-handle {
+    display: inline-flex;
+  }
+
+  .exercise-card.dragging {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(var(--rgb-accent), 0.45);
+    box-shadow: var(--shadow-lg);
+    cursor: grabbing;
+    position: relative;
+    z-index: 10;
+    transition: none;
+    will-change: transform;
+  }
+
+  .exercise-card.dragging .drag-handle {
+    opacity: 1;
+    cursor: grabbing;
+  }
+
+  @media (hover: hover) {
+    .drag-handle:hover {
+      opacity: 1;
+    }
+  }
+
   /* ── EDIT FORM ── */
   .card-edit-form {
     display: none;
@@ -1020,9 +1071,14 @@ const API_URL =
         <div class="card-top flex-column">
           <div class="card-top-row flex-row">
             <span class="card-grupo">${grupoNombre}</span>
-            <span class="badge badge-${s}">
-              <i class="bi ${meta.icon}"></i>${meta.label}
-            </span>
+            <div class="card-top-right flex-row">
+              <span class="badge badge-${s}">
+                <i class="bi ${meta.icon}"></i>${meta.label}
+              </span>
+              <button type="button" class="drag-handle" aria-label="Reordenar" tabindex="-1">
+                <i class="bi bi-grip-vertical"></i>
+              </button>
+            </div>
           </div>
           <h4>${ej.nombre}</h4>
         </div>
@@ -1119,7 +1175,7 @@ const API_URL =
   /* ── PILLS ── */
   function showPill(msg, type = "ok") {
     const pill = document.createElement("div");
-    pill.className = `gym-pill gym-pill-${type}`;
+    pill.className = `gym-pill gym-pill-${type} flex-row`;
     pill.innerHTML = `<i class="bi ${type === "ok" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"}"></i>${msg}`;
     document.getElementById("gym-pills").appendChild(pill);
     setTimeout(() => {
@@ -1270,17 +1326,29 @@ const API_URL =
         )
         .join("");
 
+    // arrastre solo en vista de una categoría
+    panelsEl.classList.toggle("mode-single", !showAll);
+
     panelsEl.innerHTML = grupos
       .map(
         (g) => `
       <div id="${g.id}" class="muscle-panel${showAll || g.id === validId ? " active" : ""}" role="tabpanel">
         <div class="exercise-grid flex-column">
-          ${g.ejercicios.map((ej) => buildCard(g.id, g.nombre, ej)).join("")}
+          ${sortByOrden(g.ejercicios)
+            .map((ej) => buildCard(g.id, g.nombre, ej))
+            .join("")}
         </div>
       </div>
     `,
       )
       .join("");
+  }
+
+  function sortByOrden(ejercicios) {
+    return ejercicios
+      .map((ej, i) => ({ ej, i }))
+      .sort((a, b) => (a.ej.orden ?? a.i) - (b.ej.orden ?? b.i))
+      .map((x) => x.ej);
   }
 
   async function loadData() {
@@ -1426,6 +1494,132 @@ const API_URL =
     }
   });
 
+  /* ── DRAG REORDER (solo vista de una categoría) ── */
+  const FLIP_MS = 160;
+  // % de la OTRA card que el borde delantero debe cruzar para reordenar.
+  // 0.5 = mitad (menor = más sensible, mayor = hay que solapar más)
+  const SWAP_RATIO = 0.5;
+  let dragCard = null;
+  let dragGrid = null;
+  let dragGrupo = null;
+  let dragPointerId = null;
+  let grabY = 0; // ancla del puntero, se ajusta al reordenar
+  let lastY = 0; // última Y del puntero, para saber la dirección
+
+  // distancia (px) que sigue al dedo, sin la transición base de la card
+  function followPointer(clientY) {
+    dragCard.style.transform = `translateY(${clientY - grabY}px) scale(1.02)`;
+  }
+
+  // top real de layout ignorando cualquier transform (propio o de FLIP en curso)
+  function untransformedTop(el) {
+    const t = getComputedStyle(el).transform;
+    let ty = 0;
+    if (t && t !== "none") ty = new DOMMatrixReadOnly(t).m42;
+    return el.getBoundingClientRect().top - ty;
+  }
+
+  // anima a las hermanas deslizándose a su nueva posición (técnica FLIP)
+  function flipSiblings(mutate) {
+    const cards = [...dragGrid.querySelectorAll(".exercise-card")];
+    const first = new Map(cards.map((c) => [c, c.getBoundingClientRect().top]));
+    mutate();
+    for (const c of cards) {
+      if (c === dragCard) continue;
+      const dy = first.get(c) - c.getBoundingClientRect().top;
+      if (!dy) continue;
+      c.style.transition = "none";
+      c.style.transform = `translateY(${dy}px)`;
+      requestAnimationFrame(() => {
+        c.style.transition = `transform ${FLIP_MS}ms ease`;
+        c.style.transform = "";
+      });
+    }
+  }
+
+  panels.addEventListener("pointerdown", (e) => {
+    const handle = e.target.closest(".drag-handle");
+    if (!handle) return;
+    if (!panels.classList.contains("mode-single")) return;
+    e.preventDefault();
+    cancelLongPress();
+    dragCard = handle.closest(".exercise-card");
+    dragGrid = dragCard.closest(".exercise-grid");
+    dragGrupo = dragCard.dataset.grupo;
+    dragPointerId = e.pointerId;
+    grabY = e.clientY;
+    lastY = e.clientY;
+    handle.setPointerCapture(e.pointerId);
+    dragCard.classList.add("dragging");
+    followPointer(e.clientY);
+  });
+
+  panels.addEventListener("pointermove", (e) => {
+    if (!dragCard || e.pointerId !== dragPointerId) return;
+
+    const siblings = [
+      ...dragGrid.querySelectorAll(".exercise-card:not(.dragging)"),
+    ];
+    // Referencia = borde DELANTERO de la card arrastrada según dirección:
+    // bajando → borde inferior, subiendo → borde superior. Así el cálculo es
+    // independiente del dedo (que está arriba) y simétrico arriba/abajo.
+    // Dispara al cruzar SWAP_RATIO de la altura de la otra card (0.5 = mitad).
+    const goingDown = e.clientY >= lastY;
+    lastY = e.clientY;
+    const dragRect = dragCard.getBoundingClientRect();
+    const ref = goingDown ? dragRect.bottom : dragRect.top;
+    const target =
+      siblings.find((s) => {
+        const mid = untransformedTop(s) + s.offsetHeight * SWAP_RATIO;
+        return ref < mid;
+      }) ?? null;
+
+    const needsMove =
+      (target && dragCard.nextElementSibling !== target) ||
+      (!target && dragCard !== dragGrid.lastElementChild);
+
+    if (needsMove) {
+      const before = untransformedTop(dragCard);
+      flipSiblings(() => {
+        if (target) dragGrid.insertBefore(dragCard, target);
+        else dragGrid.appendChild(dragCard);
+      });
+      // el slot de la card cambió: reanclar para que siga bajo el dedo
+      grabY += untransformedTop(dragCard) - before;
+    }
+
+    followPointer(e.clientY);
+  });
+
+  function endDrag(e) {
+    if (!dragCard || (e && e.pointerId !== dragPointerId)) return;
+    const card = dragCard;
+    const grid = dragGrid;
+    const grupoId = dragGrupo;
+    dragCard = dragGrid = dragGrupo = null;
+    dragPointerId = null;
+
+    // asentar la card en su slot con una breve transición
+    card.style.transition = `transform ${FLIP_MS}ms ease`;
+    card.style.transform = "translateY(0) scale(1)";
+    setTimeout(() => {
+      card.classList.remove("dragging");
+      card.style.transition = "";
+      card.style.transform = "";
+    }, FLIP_MS);
+
+    const orden = [...grid.querySelectorAll(".exercise-card")].map(
+      (c) => c.dataset.nombre,
+    );
+    reorderCache(grupoId, orden);
+    postData({ action: "reorder", grupo_id: grupoId, orden })
+      .then(() => showPill("Orden guardado"))
+      .catch(() => showPill("Error al ordenar", "err"));
+  }
+
+  panels.addEventListener("pointerup", endDrag);
+  panels.addEventListener("pointercancel", endDrag);
+
   /* ── DELETE ── */
   function deleteCacheExercise(grupoId, nombre) {
     if (!gymData) return;
@@ -1434,6 +1628,18 @@ const API_URL =
       g.ejercicios = g.ejercicios.filter((e) => e.nombre !== nombre);
       writeCache(gymData);
     }
+  }
+
+  function reorderCache(grupoId, nombresEnOrden) {
+    if (!gymData) return;
+    const g = gymData.find((g) => g.id === grupoId);
+    if (!g) return;
+    g.ejercicios.sort(
+      (a, b) =>
+        nombresEnOrden.indexOf(a.nombre) - nombresEnOrden.indexOf(b.nombre),
+    );
+    g.ejercicios.forEach((ej, i) => (ej.orden = i));
+    writeCache(gymData);
   }
 
   function deleteEjercicio(card) {
@@ -1472,6 +1678,9 @@ const API_URL =
 
   document.getElementById("grupo-select").addEventListener("change", (e) => {
     const val = e.target.value;
+    document
+      .getElementById("panels")
+      .classList.toggle("mode-single", val !== "todos");
     document.querySelectorAll(".muscle-panel").forEach((p) => {
       p.classList.toggle("active", val === "todos" || p.id === val);
     });
