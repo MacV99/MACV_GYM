@@ -1387,6 +1387,11 @@ const API_URL =
   let activeContextMenu = null;
 
   function showContextMenu(card, x, y) {
+    // dedupe: si el timer de long-press y el contextmenu nativo disparan casi
+    // a la vez (típico en el primer press tras recargar), el segundo llamado
+    // borraría y recrearía el menú → titileo. Ignorar si ya hay uno abierto
+    // para la misma card.
+    if (activeContextMenu && activeContextMenu.card === card) return;
     closeContextMenu();
     const menu = document.createElement("div");
     menu.className = "card-context-menu flex-column";
