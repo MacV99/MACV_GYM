@@ -224,6 +224,16 @@ const API_URL =
     justify-content: flex-start;
     min-height: 130px;
     transition: var(--transition);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* form de edición: re-habilitar selección/edición de texto */
+  .card-edit-form input {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
   }
 
   .exercise-card.editing {
@@ -360,6 +370,9 @@ const API_URL =
     position: fixed;
     z-index: 9999;
     animation: fadeInUp 0.1s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 
   .ctx-btn {
