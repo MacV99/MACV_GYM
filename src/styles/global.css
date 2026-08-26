@@ -2,7 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Montserrat', 'Gill Sans', sans-serif !important;
+  font-family: var(--font-body) !important;
 }
 
 html {
@@ -33,7 +33,7 @@ li {
 
 a {
   text-decoration: none;
-  color: var(--clr-primary);
+  color: var(--clr-white);
 }
 
 i {
@@ -47,10 +47,21 @@ h2,
 h3,
 h4,
 h5 {
-  font-weight: 700;
-  letter-spacing: 2px;
-  padding-left: 2px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: var(--clr-white);
+}
+
+/* Micro-etiqueta editorial: uppercase con tracking amplio (eyebrows, labels) */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: var(--clr-dark2);
 }
 
 p {
@@ -102,12 +113,12 @@ footer>* {
 
 a.boton,
 .button1 {
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-weight: 700;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
   font-size: 13px;
   border: none;
-  letter-spacing: 2px;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition: var(--transition);
   display: inline-flex;
@@ -117,26 +128,26 @@ a.boton,
 
 .button1 {
   background-color: var(--clr-accent);
-  color: var(--clr-white);
+  color: var(--clr-dark);
 }
 
 .button2 {
-  padding: 7px 14px;
+  padding: 10px 20px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
   transition: var(--transition);
-  text-transform: uppercase;
-  border-radius: 12px;
-  border: solid 1px var(--clr-gray);
-  background-color: var(--clr-white);
-  letter-spacing: 1px;
+  border-radius: var(--radius-pill);
+  border: solid 1px var(--border-soft);
+  background-color: transparent;
+  color: var(--clr-white);
+  letter-spacing: 0.01em;
 }
 
 .button2.active {
-  background-color: var(--clr-primary);
-  color: var(--clr-white);
-  border-color: var(--clr-primary);
+  background-color: var(--clr-white);
+  color: var(--clr-dark);
+  border-color: var(--clr-white);
 }
 
 /* =============================================
@@ -188,15 +199,14 @@ a.boton,
 
 @media (hover: hover) {
   .button1:hover {
-    background-color: color-mix(in oklch, var(--clr-accent) 75%, black);
+    background-color: color-mix(in oklch, var(--clr-accent) 90%, black);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--glow-white);
   }
 
   .button2:hover {
-    background-color: var(--clr-primary);
-    color: var(--clr-white);
-    border-color: var(--clr-primary);
+    border-color: var(--border-hover);
+    background-color: var(--bg-subtle);
   }
 }
 

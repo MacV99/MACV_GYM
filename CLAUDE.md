@@ -35,9 +35,15 @@ src/
 
 `global.css` solo se importa en `Layout1.astro` — nunca en componentes individuales.
 
-## Sistema de colores (skills: css-order, astro-css-architecture)
+## Sistema de colores (skills: css-order, astro-css-architecture, design-system-factory)
 
-Para adaptar al cliente, cambiar en `project.css`:
+**Identidad actual: monocromo dark-first** (negro `#0a0a0a` + blanco `#fafafa` + grises; el
+blanco es el acento). El porqué, los contratos de componente y el changelog viven en
+[`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). La fuente de verdad de **valores** es `project.css`,
+organizado en 3 niveles (primitivo → semántico → componente). Para re-marcar, tocar solo el
+Nivel 1. Ejecutar el flujo con el skill `/design-system-factory`.
+
+El bloque de ejemplo abajo es de la plantilla base (valores ilustrativos, NO los del proyecto):
 
 ```css
 --clr-primary: #032132;   /* color base — genera primary-mid y primary-light via color-mix */

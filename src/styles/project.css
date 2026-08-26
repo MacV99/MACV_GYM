@@ -1,70 +1,106 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* =============================================================
+   MACV GYM · TOKENS DEL PROYECTO
+   Identidad: monocromo · dark-first · editorial · técnico.
+   Fuente de verdad de VALORES. El porqué vive en DESIGN_SYSTEM.md.
+   Taxonomía en 3 niveles: 1 Primitivo → 2 Semántico → 3 Componente.
+   Re-marcar = tocar SOLO el Nivel 1.
+   ============================================================= */
 
 :root {
-  /* ── PALETA DEL PROYECTO ── */
-  --clr-primary: #222222;
-  --clr-primary-mid: color-mix(in oklch, var(--clr-primary) 90%, white);
-  --clr-primary-light: color-mix(in oklch, var(--clr-primary) 8%, white);
+  /* ═══════════════════════════════════════════
+     NIVEL 1 · PRIMITIVOS (los únicos valores crudos)
+     ═══════════════════════════════════════════ */
+  --clr-black: #0a0a0a;   /* fondo de la app */
+  --clr-white: #fafafa;   /* tinta principal — y ACENTO (el blanco se gana su lugar) */
+  --rgb-black: 10, 10, 10;
+  --rgb-white: 250, 250, 250;
 
-  --clr-accent: #c2d8c4;
+  /* Tipografía */
+  --font-display: 'Inter', 'Montserrat', 'Gill Sans', sans-serif;
+  --font-body:    'Inter', 'Montserrat', 'Gill Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  --clr-danger: #e11d48;
+  /* Escala de espaciado (pasos fijos, nada libre) */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
 
-  /* ── NEUTROS ── */
-  --clr-dark: #222222;
-  --clr-dark2: #3a3a3a;
-  --clr-gray: #dcdcdc;
-  --clr-white: #f4f4f4;
+  /* Escala de radius */
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-pill: 100px;
 
   --transition: all 0.2s ease;
 
-  /* ── CANALES RGB DEL PROYECTO ── */
-  --rgb-primary: 34, 34, 34;
-  --rgb-accent: 194, 216, 196;
+  /* ═══════════════════════════════════════════
+     NIVEL 2 · SEMÁNTICO (rol — derivado del Nivel 1, nunca hex nuevo)
+     ═══════════════════════════════════════════ */
 
-  /* ── DOT GRID ── */
-  --dot-grid: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  /* Superficies — negro base + elevaciones por mezcla con blanco */
+  --clr-dark:          var(--clr-black);                               /* body / fondo raíz */
+  --clr-primary:       var(--clr-black);                               /* superficie base */
+  --clr-primary-mid:   color-mix(in oklch, var(--clr-black) 92%, white);  /* superficie elevada */
+  --clr-primary-light: color-mix(in oklch, var(--clr-black) 86%, white);  /* card / menú */
+  --surface-1: var(--clr-primary);
+  --surface-2: var(--clr-primary-mid);
+  --surface-3: var(--clr-primary-light);
+
+  /* Tinta */
+  --clr-dark2: #a1a1a1;              /* texto secundario / atenuado sobre negro */
+  --clr-gray:  rgba(var(--rgb-white), 0.14);  /* divisores / bordes de control neutros */
+
+  /* Acento = blanco (monocromo total: el blanco ES el color de vida) */
+  --clr-accent: var(--clr-white);
+  --rgb-accent: var(--rgb-white);
+
+  /* Estado destructivo — monocromo: sin rojo, se distingue por ícono + hover */
+  --clr-danger: var(--clr-white);
+
+  --rgb-primary: var(--rgb-black);
+
+  /* Bordes — blanco a baja opacidad sobre negro */
+  --border-soft:  rgba(var(--rgb-white), 0.08);
+  --border-hover: rgba(var(--rgb-white), 0.20);
+
+  /* Fondos y overlays sutiles */
+  --bg-subtle:     rgba(var(--rgb-white), 0.04);
+  --overlay-card:  rgba(var(--rgb-black), 0.90);
+  --overlay-bg:    rgba(var(--rgb-black), 0.82);
+  --modal-backdrop: rgba(var(--rgb-black), 0.72);
+  --hero-overlay:  rgba(var(--rgb-black), 0.72);
+
+  /* Sombras — negro profundo + glow blanco discreto */
+  --shadow-sm: 0 2px 8px rgba(var(--rgb-black), 0.50);
+  --shadow-md: 0 4px 20px rgba(var(--rgb-black), 0.55);
+  --shadow-lg: 0 8px 40px rgba(var(--rgb-black), 0.60);
+  --glow-white: 0 0 24px rgba(var(--rgb-white), 0.12);
+
+  /* Foco de teclado — siempre visible sobre negro */
+  --focus-ring: 0 0 0 3px rgba(var(--rgb-white), 0.28);
+
+  /* Trama de puntos (firma de fondo) */
+  --dot-grid: radial-gradient(circle, rgba(var(--rgb-white), 0.05) 1px, transparent 1px);
   --dot-grid-size: 22px 22px;
 
-  /* ── BADGES EQUIPAMIENTO ── */
-  --badge-barra:     #f59e0b;
-  --badge-mancuerna: #38bdf8;
-  --badge-maquina:   #a78bfa;
-  --badge-disco:     #fb923c;
-  --badge-corporal:  #4ade80;
+  /* ═══════════════════════════════════════════
+     NIVEL 3 · COMPONENTE (específico de una pieza)
+     ═══════════════════════════════════════════ */
 
-  /* ── SOMBRAS CON PRIMARIO DEL PROYECTO ── */
-  --shadow-sm: 0 2px 8px rgba(var(--rgb-primary), 0.08);
-  --shadow-md: 0 4px 20px rgba(var(--rgb-primary), 0.12);
-  --shadow-lg: 0 8px 40px rgba(var(--rgb-primary), 0.18);
+  /* Header glass */
+  --header-bg: rgba(var(--rgb-white), 0.05);
 
-  /* ── MODALES ── */
-  --clr-modal-aviso: #fef9c3;
-  --clr-modal-error: #fee2e2;
-  --clr-modal-exito: #dcfce7;
-  --clr-modal-carga: #e0f2fe;
+  /* Footer */
+  --footer-hover-bg: rgba(var(--rgb-white), 0.06);
 
-  /* ── OVERLAYS ── */
-  --modal-backdrop: rgba(15, 23, 42, 0.38);
-  --overlay-bg: rgba(0, 0, 0, 0.7);
+  /* Badges de equipamiento — monocromo: la distinción la lleva el TEXTO, no el color */
+  --badge-barra:     #b4b4b4;
+  --badge-mancuerna: #b4b4b4;
+  --badge-maquina:   #b4b4b4;
+  --badge-disco:     #b4b4b4;
+  --badge-corporal:  #b4b4b4;
 
-  /* ── HEADER ── */
-  --header-bg: rgba(255, 255, 255, 0.07);
-
-  /* ── HERO ── */
-  --hero-overlay: rgba(var(--rgb-primary), 0.72);
-
-  /* ── FOOTER ── */
-  --footer-hover-bg: rgba(255, 255, 255, 0.07);
-
-  /* ── BORDES ── */
-  --border-soft: rgba(var(--rgb-primary), 0.1);
-  --border-hover: rgba(var(--rgb-primary), 0.22);
-
-  /* ── FONDOS Y OVERLAYS ── */
-  --bg-subtle: rgba(var(--rgb-primary), 0.06);
-  --overlay-card: rgba(var(--rgb-primary), 0.88);
-
-  /* ── FOCUS RING ── */
-  --focus-ring: 0 0 0 3px rgba(var(--rgb-primary), 0.08);
+  /* Toasts / modales de estado — superficies oscuras (sin color de estado) */
+  --clr-modal-aviso: var(--clr-primary-light);
+  --clr-modal-error: var(--clr-primary-light);
+  --clr-modal-exito: var(--clr-primary-light);
+  --clr-modal-carga: var(--clr-primary-light);
 }

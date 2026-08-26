@@ -358,7 +358,7 @@ const API_URL =
 
   /* ── CONTEXT MENU ── */
   .card-context-menu {
-    background: #1e1e1e;
+    background: var(--surface-2);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
@@ -393,7 +393,7 @@ const API_URL =
   }
 
   .ctx-delete {
-    color: #ff6b6b;
+    color: var(--clr-danger);
   }
 
   .exercise-card.long-pressing {
@@ -530,7 +530,7 @@ const API_URL =
 
   /* ── COMBO PORTAL (appended to body, position:fixed) ── */
   .combo-portal {
-    background: #242424;
+    background: var(--surface-3);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 10px;
     overflow: hidden;
@@ -542,7 +542,7 @@ const API_URL =
   .combo-opt {
     color: var(--clr-white);
     cursor: pointer;
-    font-family: "Montserrat", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.82rem;
     font-weight: 600;
     padding: 9px 14px;
@@ -805,15 +805,15 @@ const API_URL =
   }
 
   .gym-pill-ok {
-    background: rgba(97, 195, 255, 0.18);
-    border: 1px solid rgba(97, 195, 255, 0.35);
-    color: var(--clr-accent);
+    background: rgba(var(--rgb-white), 0.12);
+    border: 1px solid rgba(var(--rgb-white), 0.28);
+    color: var(--clr-white);
   }
 
   .gym-pill-err {
-    background: rgba(255, 80, 80, 0.18);
-    border: 1px solid rgba(255, 80, 80, 0.35);
-    color: #ff6b6b;
+    background: rgba(var(--rgb-white), 0.06);
+    border: 1px solid rgba(var(--rgb-white), 0.18);
+    color: var(--clr-dark2);
   }
 
   .gym-pill-out {
