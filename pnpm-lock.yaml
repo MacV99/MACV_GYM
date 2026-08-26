@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@bryllim/workout-guide':
+        specifier: ^1.0.0
+        version: 1.0.0
       astro:
         specifier: ^5.12.8
         version: 5.18.1(rollup@4.60.3)(typescript@5.9.3)
@@ -47,6 +50,10 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
+
+  '@bryllim/workout-guide@1.0.0':
+    resolution: {integrity: sha512-N593OR3vyT/C1sDpdM/UoF5gHUwEAziExxo9Y0awMLyPpCvx8DnIAlOFJ9kHk/TZwhbWN6WoCEASAEX5ZbiIGQ==}
+    engines: {node: '>=18'}
 
   '@capsizecss/unpack@4.0.0':
     resolution: {integrity: sha512-VERIM64vtTP1C4mxQ5thVT9fK0apjPFobqybMtA1UdUujWka24ERHbRHFGmpbbhp73MhV+KSsHQH9C6uOTdEQA==}
@@ -1706,6 +1713,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@bryllim/workout-guide@1.0.0': {}
 
   '@capsizecss/unpack@4.0.0':
     dependencies:

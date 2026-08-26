@@ -36,10 +36,12 @@ de estado chillones, cero sombras infladas tipo SaaS.
 > blanco (`color-mix`), nunca un hex nuevo.
 
 ## 4. Tipografía
-- **Display / títulos:** `--font-display` (Inter) — peso 800, sentence-case, tracking `-0.01em`
-  a `-0.03em` en tamaños grandes. Sin uppercase en títulos.
-- **Cuerpo / UI:** `--font-body` (Inter) — 400–600.
-- **Mono:** `--font-mono` (JetBrains Mono) — eyebrows, labels técnicos, `code`, datos.
+- **Display / títulos:** `--font-display` (Montserrat) — peso 700–800, sentence-case, tracking
+  `-0.01em` a `-0.03em` en tamaños grandes. Sin uppercase en títulos.
+- **Cuerpo / UI:** `--font-body` (Montserrat) — 400–600.
+- **Labels:** `--font-mono` (Montserrat) — eyebrows, labels (SERIES/REPS/PESO), `code`. Se
+  mantiene el token `--font-mono` por rol (uppercase + tracking amplio), aunque hoy también
+  es Montserrat. La distinción es de peso/tracking/mayúsculas, no de familia.
 - **Micro-etiqueta:** clase `.eyebrow` — mono, uppercase, tracking `0.18em`, gris `--clr-dark2`.
 - Escala hero: H1 hasta `5.2rem` en desktop. Caja: sentence-case en títulos y párrafos;
   UPPERCASE **solo** en micro-labels/eyebrows y navegación.
@@ -99,6 +101,10 @@ sobre negro = invisible → usar `--rgb-white`).
 
 ## Changelog
 Registro fechado de cambios de identidad (fecha absoluta · qué cambió · por qué).
+
+- `2026-08-26` — **Tipografía → Montserrat en todo** (display, cuerpo y labels). Motivo:
+  fuente favorita del usuario. Se removió Inter + JetBrains Mono; se cargan solo pesos
+  300–800 de Montserrat vía `<link>`. Los tokens `--font-*` siguen separados por rol.
 
 - `2026-08-26` — **Rebrand monocromo dark-first.** Se abandonó la paleta previa (primary `#222`,
   accent verde salvia `#c2d8c4`, badges de equipo en color, estados cyan/rojo) por un sistema

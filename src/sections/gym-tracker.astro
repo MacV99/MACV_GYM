@@ -1,4 +1,6 @@
 ---
+import { ASSET_BY_KEY, ASSET_BY_NAME } from "../data/exercise-map.js";
+
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwAzgf3dkXJLt0Yhh9l93sBkL1GVhwZ8jekaj6kVT8D_m2QLNXvw3UNc-aCGuJR135KCA/exec";
 ---
@@ -14,10 +16,33 @@ const API_URL =
   </div>
 
   <div class="select-wrap">
-    <select id="grupo-select" aria-label="Seleccionar grupo muscular" disabled>
+    <select
+      id="grupo-select"
+      class="select-native"
+      aria-hidden="true"
+      tabindex="-1"
+      disabled
+    >
       <option>Cargando...</option>
     </select>
-    <i class="bi bi-chevron-down"></i>
+    <button
+      type="button"
+      id="grupo-trigger"
+      class="select-trigger"
+      aria-haspopup="listbox"
+      aria-expanded="false"
+      aria-label="Seleccionar grupo muscular"
+      disabled
+    >
+      <span id="grupo-trigger-label">Cargando...</span>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+    <div
+      id="grupo-list"
+      class="select-list"
+      role="listbox"
+      aria-label="Grupo muscular"
+    ></div>
   </div>
 
   <div id="panels" class="flex-column"></div>
@@ -73,8 +98,8 @@ const API_URL =
         </label>
       </div>
       <div class="edit-actions flex-row" style="margin-top:8px">
-        <button type="submit" class="btn-save">Crear</button>
         <button type="button" class="btn-cancel-create btn-modal-close">Cancelar</button>
+        <button type="submit" class="btn-save">Crear</button>
       </div>
     </form>
   </div>
@@ -100,10 +125,11 @@ const API_URL =
   .tracker-eyebrow {
     justify-content: flex-start;
     gap: 6px;
-    color: var(--clr-accent);
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
     font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 3px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
@@ -114,67 +140,141 @@ const API_URL =
 
   .tracker-header h2 {
     color: var(--clr-white);
-    font-size: 1.7rem;
-    letter-spacing: 4px;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
   }
 
   .tracker-sub {
-    color: rgba(255, 255, 255, 0.38);
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
     font-size: 0.72rem;
-    letter-spacing: 2px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  /* ── SELECT ── */
+  /* ── SELECT (custom dropdown, monocromo) ── */
   .select-wrap {
     position: relative;
     width: 100%;
     max-width: 320px;
   }
 
-  .select-wrap select {
+  /* nativo = fuente de verdad, oculto visualmente */
+  .select-native {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    appearance: none;
-    -webkit-appearance: none;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 14px;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
     color: var(--clr-white);
-    font-family: inherit;
+    font-family: var(--font-body);
     font-size: 0.95rem;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 14px 44px 14px 18px;
+    padding: 13px 16px;
     cursor: pointer;
     transition: var(--transition);
   }
 
-  .select-wrap select:disabled {
+  .select-trigger .bi {
+    color: var(--clr-white);
+    opacity: 0.6;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+  }
+
+  .select-trigger[aria-expanded='true'] .bi {
+    transform: rotate(180deg);
+  }
+
+  .select-trigger:disabled {
     opacity: 0.4;
     cursor: default;
   }
 
-  .select-wrap select option {
-    background: var(--clr-dark);
-    color: var(--clr-white);
-    letter-spacing: 1px;
+  .select-trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
 
-  .select-wrap .bi {
+  .select-list {
     position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--clr-accent);
-    font-size: 0.9rem;
-    pointer-events: none;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+    background: var(--surface-3);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .select-list.open {
+    display: flex;
+    animation: fadeInUp 0.12s ease;
+  }
+
+  .select-opt {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--clr-white);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 11px 14px;
+    transition: background 0.12s ease;
+  }
+
+  .select-opt[aria-selected='true'] {
+    background: var(--bg-subtle);
+  }
+
+  .select-opt[aria-selected='true']::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--clr-white);
+    flex-shrink: 0;
   }
 
   @media (hover: hover) {
-    .select-wrap select:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.11);
-      border-color: rgba(255, 255, 255, 0.24);
+    .select-trigger:hover:not(:disabled) {
+      background: rgba(var(--rgb-white), 0.07);
+      border-color: var(--border-hover);
+    }
+
+    .select-opt:hover {
+      background: rgba(var(--rgb-white), 0.08);
     }
   }
 
@@ -204,7 +304,7 @@ const API_URL =
 
   .muscle-panel.active {
     display: block;
-    animation: fadeInUp 0.22s ease;
+    animation: fadeIn 0.18s ease;
   }
 
   /* ── EXERCISE GRID — mobile: 1 col ── */
@@ -216,10 +316,10 @@ const API_URL =
 
   /* ── EXERCISE CARD ── */
   .exercise-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: solid 1px rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 16px;
+    background: var(--bg-subtle);
+    border: solid 1px var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 18px;
     align-items: stretch;
     justify-content: flex-start;
     min-height: 130px;
@@ -254,98 +354,128 @@ const API_URL =
 
   .card-top h4 {
     color: var(--clr-white);
-    font-size: 0.88rem;
-    letter-spacing: 1.5px;
-    line-height: 1.3;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    font-weight: 600;
   }
 
   .card-grupo {
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--clr-accent);
-    opacity: 0.75;
+    color: var(--clr-dark2);
   }
 
-  /* ── BADGES ── */
+  /* ── EXERCISE FIGURE (ilustración del ejercicio) ── */
+  .card-figure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 14px;
+    overflow: hidden;
+  }
+
+  .card-figure-img {
+    height: 100px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    /* assets ya vienen en trazo blanco sobre transparente → sin invertir */
+    opacity: 0.92;
+    transition: var(--transition);
+  }
+
+  /* tap: durante el ciclo de frames solo subimos opacidad, sin escalar
+     (el scale se veía como "rebote" y tapaba el cambio de pose) */
+  .card-figure.figure-playing .card-figure-img {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    .exercise-card:not(.editing):hover .card-figure-img {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+  }
+
+  @media (min-width: 750px) {
+    .card-figure-img {
+      height: 104px;
+    }
+  }
+
+  /* ── BADGE EQUIPO (mono: la distinción la lleva el texto, no el color) ── */
   .badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 2px 7px;
-    border-radius: 5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--clr-dark2);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-soft);
     white-space: nowrap;
     flex-shrink: 0;
   }
 
-  .badge .bi {
-    font-size: 9px;
-  }
-
-  .badge-barra {
-    background: color-mix(in oklch, var(--badge-barra) 18%, transparent);
-    color: var(--badge-barra);
-    border: 1px solid color-mix(in oklch, var(--badge-barra) 30%, transparent);
-  }
-
-  .badge-mancuerna {
-    background: color-mix(in oklch, var(--badge-mancuerna) 18%, transparent);
-    color: var(--badge-mancuerna);
-    border: 1px solid
-      color-mix(in oklch, var(--badge-mancuerna) 30%, transparent);
-  }
-
-  .badge-maquina {
-    background: color-mix(in oklch, var(--badge-maquina) 18%, transparent);
-    color: var(--badge-maquina);
-    border: 1px solid color-mix(in oklch, var(--badge-maquina) 30%, transparent);
-  }
-
-  .badge-disco {
-    background: color-mix(in oklch, var(--badge-disco) 18%, transparent);
-    color: var(--badge-disco);
-    border: 1px solid color-mix(in oklch, var(--badge-disco) 30%, transparent);
-  }
-
-  .badge-corporal {
-    background: color-mix(in oklch, var(--badge-corporal) 18%, transparent);
-    color: var(--badge-corporal);
-    border: 1px solid
-      color-mix(in oklch, var(--badge-corporal) 30%, transparent);
-  }
-
-  /* ── METRICS ROW ── */
+  /* ── METRICS FOOTER (stats balanceados en 3 columnas iguales) ── */
   .card-metrics {
-    gap: 50px;
+    justify-content: space-between;
+    gap: 0;
     flex-wrap: nowrap;
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
   }
 
   .metric {
-    justify-content: flex-start;
-    gap: 2px;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+
+  /* divisor vertical sutil entre columnas */
+  .metric + .metric::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 24px;
+    background: var(--border-soft);
   }
 
   .metric-val {
     color: var(--clr-white);
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
     white-space: nowrap;
   }
 
   .metric-lbl {
-    color: rgba(255, 255, 255, 0.32);
-    font-size: 0.55rem;
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.14em;
   }
 
   .metric-sep {
@@ -398,7 +528,6 @@ const API_URL =
 
   .exercise-card.long-pressing {
     background: rgba(255, 255, 255, 0.1);
-    transform: scale(0.98);
   }
 
   /* ── DRAG HANDLE / REORDER ── */
@@ -484,10 +613,11 @@ const API_URL =
   }
 
   .edit-field span {
-    color: rgba(255, 255, 255, 0.38);
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 0.8px;
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
     text-align: center;
     text-transform: uppercase;
   }
@@ -495,17 +625,21 @@ const API_URL =
   .edit-field input,
   .edit-field select {
     appearance: none;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
+    background: rgba(var(--rgb-white), 0.06);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
     color: var(--clr-white);
-    font-family: inherit;
+    font-family: var(--font-body);
     font-size: 0.9rem;
-    font-weight: 700;
-    padding: 8px 6px;
+    font-weight: 600;
+    padding: 11px 10px;
     text-align: center;
     transition: var(--transition);
     width: 100%;
+  }
+
+  .edit-field input::placeholder {
+    color: rgba(var(--rgb-white), 0.3);
   }
 
   .edit-field select option {
@@ -515,7 +649,8 @@ const API_URL =
 
   .edit-field input:focus,
   .edit-field select:focus {
-    border-color: var(--clr-accent);
+    border-color: rgba(var(--rgb-white), 0.4);
+    box-shadow: var(--focus-ring);
     outline: none;
   }
 
@@ -643,16 +778,16 @@ const API_URL =
 
   @media (hover: hover) {
     .exercise-card:not(.editing):hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(var(--rgb-white), 0.07);
+      border-color: var(--border-hover);
     }
 
     .ctx-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(var(--rgb-white), 0.08);
     }
 
     .ctx-delete:hover {
-      background: rgba(255, 107, 107, 0.12);
+      background: rgba(var(--rgb-white), 0.08);
     }
 
     .edit-field input:hover,
@@ -698,29 +833,74 @@ const API_URL =
   }
 
   .modal-box {
-    background: color-mix(in oklch, var(--clr-dark) 96%, white);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
     align-items: stretch;
     justify-content: flex-start;
     gap: 18px;
     max-height: 85vh;
     max-width: 480px;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px;
     width: 100%;
+    box-shadow: var(--shadow-lg);
   }
 
   .modal-head {
     justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .modal-head h3 {
     color: var(--clr-white);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
+  }
+
+  /* ── MODAL: formulario más estructurado ── */
+  #modal-create .edit-fields {
+    gap: 14px;
+  }
+
+  /* Campos anchos (nombre/grupo/equipo): label + texto a la izquierda */
+  #modal-create .edit-field--full {
+    gap: 7px;
+  }
+
+  #modal-create .edit-field--full span {
+    text-align: left;
+  }
+
+  #modal-create .edit-field--full input,
+  #modal-create .edit-field--full .combo-input {
+    text-align: left;
+    padding: 13px 14px;
+  }
+
+  /* Trío numérico (series/reps/peso): centrado, como las métricas de la card */
+  #modal-create .edit-field:not(.edit-field--full) {
+    gap: 7px;
+  }
+
+  /* Divisor antes de los botones */
+  #modal-create .edit-actions {
+    margin-top: 4px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
+    gap: 8px;
+  }
+
+  /* Botones del modal: más cómodos y con radius del sistema */
+  #modal-create .btn-save,
+  #modal-create .btn-cancel-create {
+    padding: 13px 18px;
+    border-radius: var(--radius-md);
+    letter-spacing: 0.1em;
   }
 
   .btn-modal-close {
@@ -760,6 +940,7 @@ const API_URL =
     .exercise-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      align-items: start;
       gap: 10px;
     }
 
@@ -769,11 +950,11 @@ const API_URL =
     }
 
     .card-top h4 {
-      font-size: 0.82rem;
+      font-size: 1.3rem;
     }
 
     .metric-val {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
   }
 
@@ -839,7 +1020,71 @@ const API_URL =
   }
 </style>
 
-<script define:vars={{ API_URL }}>
+<script define:vars={{ API_URL, ASSET_BY_KEY, ASSET_BY_NAME }}>
+  /* ── EXERCISE ASSETS (ilustraciones @bryllim/workout-guide, CC BY-SA 4.0) ── */
+  function normKey(str) {
+    return String(str ?? "")
+      .trim()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+  }
+
+  function resolveAssetSlug(nombre, equipo) {
+    const byKey = ASSET_BY_KEY[`${normKey(nombre)}|${normKey(equipo)}`];
+    if (byKey) return byKey.slug;
+    return ASSET_BY_NAME[normKey(nombre)] ?? null;
+  }
+
+  function buildFigureHtml(ej) {
+    const slug = resolveAssetSlug(ej.nombre, ej.equipo);
+    if (!slug) return "";
+    return `
+      <div class="card-figure" data-slug="${slug}" aria-hidden="true">
+        <img class="card-figure-img" src="/exercises/${slug}/frame-1.png"
+             alt="" loading="lazy" decoding="async" width="512" height="512">
+      </div>
+    `;
+  }
+
+  /* ── FIGURE ANIMATION (tap corto = demo del movimiento por frames) ── */
+  const figPreload = new Set(); // slugs ya precargados (frames 2,3)
+
+  function preloadFrames(slug) {
+    if (figPreload.has(slug)) return;
+    figPreload.add(slug);
+    [2, 3].forEach((n) => {
+      const im = new Image();
+      im.src = `/exercises/${slug}/frame-${n}.png`;
+    });
+  }
+
+  function animateFigure(card) {
+    const fig = card.querySelector(".card-figure");
+    const img = fig?.querySelector(".card-figure-img");
+    if (!fig || !img || fig.dataset.animating) return;
+    const slug = fig.dataset.slug;
+    if (!slug) return;
+
+    fig.dataset.animating = "1";
+    fig.classList.add("figure-playing");
+    // ida y vuelta ×2: pose inicial → fases → inicio, se ve como el gesto
+    const seq = [2, 3, 2, 1, 2, 3, 2, 1];
+    let i = 0;
+    const step = () => {
+      if (i >= seq.length) {
+        img.src = `/exercises/${slug}/frame-1.png`;
+        fig.classList.remove("figure-playing");
+        delete fig.dataset.animating;
+        return;
+      }
+      img.src = `/exercises/${slug}/frame-${seq[i++]}.png`;
+      setTimeout(step, 300);
+    };
+    step();
+  }
+
   /* ── CONSTANTS ── */
   const EQUIPO_META = {
     barra: { label: "BAR", icon: "bi-dash-lg" },
@@ -1047,11 +1292,20 @@ const API_URL =
     `;
   }
 
+  // GSheets devuelve celdas tipeadas como fecha en formato ISO (ej. "2026-05-07T05:00:00.000Z").
+  // El peso nunca es una fecha → lo tratamos como vacío para no mostrar basura.
+  function cleanPeso(v) {
+    if (v == null || v === "") return null;
+    const s = String(v).trim();
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) return null;
+    return s;
+  }
+
   function buildMetricsHtml(ej) {
-    const pesoVal =
-      ej.peso != null && ej.peso !== ""
-        ? `${ej.peso}${ej.unidad ? " " + ej.unidad : ""}`
-        : "—";
+    const peso = cleanPeso(ej.peso);
+    const pesoVal = peso
+      ? `${peso}${ej.unidad ? " " + ej.unidad : ""}`
+      : "—";
     return `
       <div class="metric flex-column">
         <span class="metric-val">${ej.series ?? "—"}</span>
@@ -1085,14 +1339,13 @@ const API_URL =
           <div class="card-top-row flex-row">
             <span class="card-grupo">${grupoNombre}</span>
             <div class="card-top-right flex-row">
-              <span class="badge badge-${s}">
-                <i class="bi ${meta.icon}"></i>${meta.label}
-              </span>
+              <span class="badge badge-${s}">${meta.label}</span>
               <button type="button" class="drag-handle" aria-label="Reordenar" tabindex="-1">
                 <i class="bi bi-grip-vertical"></i>
               </button>
             </div>
           </div>
+          ${buildFigureHtml(ej)}
           <h4>${ej.nombre}</h4>
         </div>
         <div class="card-metrics flex-row">${buildMetricsHtml(ej)}</div>
@@ -1120,8 +1373,8 @@ const API_URL =
             </label>
           </div>
           <div class="edit-actions flex-row">
-            <button type="submit" class="btn-save">Guardar</button>
             <button type="button" class="btn-cancel">Cancelar</button>
+            <button type="submit" class="btn-save">Guardar</button>
           </div>
         </form>
       </article>
@@ -1355,6 +1608,8 @@ const API_URL =
     `,
       )
       .join("");
+
+    syncCustomSelect();
   }
 
   function sortByOrden(ejercicios) {
@@ -1479,9 +1734,13 @@ const API_URL =
     const card = e.target.closest(".exercise-card");
     if (!card || card.classList.contains("editing")) return;
     if (e.target.closest("button")) return;
+    // solo botón primario: click derecho (button 2) va al menú contextual
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     lpCard = card;
     lpX = e.clientX;
     lpY = e.clientY;
+    const fig = card.querySelector(".card-figure");
+    if (fig?.dataset.slug) preloadFrames(fig.dataset.slug);
     lpTimer = setTimeout(() => {
       card.classList.remove("long-pressing");
       showContextMenu(card, lpX, lpY);
@@ -1492,7 +1751,14 @@ const API_URL =
     card.classList.add("long-pressing");
   });
 
-  panels.addEventListener("pointerup", cancelLongPress);
+  panels.addEventListener("pointerup", (e) => {
+    // tap corto = timer aún vivo (no llegó a long-press) y sin movimiento
+    const isTap = lpTimer && lpCard;
+    const tapCard = lpCard;
+    cancelLongPress();
+    // tap corto → demo del movimiento ciclando los frames
+    if (isTap && tapCard) animateFigure(tapCard);
+  });
   panels.addEventListener("pointercancel", cancelLongPress);
   panels.addEventListener("pointermove", (e) => {
     if (!lpCard) return;
@@ -1703,6 +1969,62 @@ const API_URL =
       p.classList.toggle("active", val === "todos" || p.id === val);
     });
   });
+
+  /* ── CUSTOM SELECT (envuelve el <select> nativo, que sigue siendo el estado) ── */
+  function syncCustomSelect() {
+    const select = document.getElementById("grupo-select");
+    const trigger = document.getElementById("grupo-trigger");
+    const label = document.getElementById("grupo-trigger-label");
+    const list = document.getElementById("grupo-list");
+    if (!select || !trigger || !label || !list) return;
+
+    trigger.disabled = select.disabled;
+    const cur = select.value;
+    label.textContent = select.selectedOptions[0]?.textContent ?? "";
+    list.innerHTML = Array.from(select.options)
+      .map(
+        (o) =>
+          `<button type="button" class="select-opt" role="option" data-value="${o.value}" aria-selected="${o.value === cur}">${o.textContent}</button>`,
+      )
+      .join("");
+  }
+
+  function closeGrupoList() {
+    document.getElementById("grupo-list")?.classList.remove("open");
+    document
+      .getElementById("grupo-trigger")
+      ?.setAttribute("aria-expanded", "false");
+  }
+
+  (function initCustomSelect() {
+    const trigger = document.getElementById("grupo-trigger");
+    const list = document.getElementById("grupo-list");
+    if (!trigger || !list) return;
+
+    trigger.addEventListener("click", () => {
+      if (trigger.disabled) return;
+      const open = list.classList.toggle("open");
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    list.addEventListener("click", (e) => {
+      const btn = e.target.closest(".select-opt");
+      if (!btn) return;
+      const select = document.getElementById("grupo-select");
+      select.value = btn.dataset.value;
+      select.dispatchEvent(new Event("change"));
+      syncCustomSelect();
+      closeGrupoList();
+      trigger.focus();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".select-wrap")) closeGrupoList();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeGrupoList();
+    });
+  })();
 
   loadData().catch(console.error);
 </script>

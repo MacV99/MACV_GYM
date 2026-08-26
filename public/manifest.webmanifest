@@ -4,8 +4,8 @@
   "description": "Rastreador de rutinas MACV",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#202020",
-  "theme_color": "#202020",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "icons": [
     {
       "src": "/favicon.svg",

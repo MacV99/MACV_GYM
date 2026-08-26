@@ -11,6 +11,12 @@
   <p class="footer-tagline">Registra. Progresa. Supérate.</p>
 
   <code>©2026 Miguel Cuellar</code>
+
+  <p class="footer-credit">
+    Ilustraciones de ejercicios:
+    <a href="https://bryllim.github.io/workout-guide/" target="_blank" rel="noopener">workout-guide</a>
+    de Bryl Lim · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>
+  </p>
 </footer>
 
 <style>
@@ -53,5 +59,28 @@
     font-family: var(--font-mono);
     color: rgba(var(--rgb-white), 0.3);
     font-size: 0.72rem;
+  }
+
+  .footer-credit {
+    color: rgba(var(--rgb-white), 0.28);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    line-height: 1.5;
+    max-width: 320px;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .footer-credit a {
+    color: rgba(var(--rgb-white), 0.45);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .footer-credit a:hover {
+      color: var(--clr-white);
+    }
   }
 </style>
