@@ -7,7 +7,7 @@ import Header from "../components/header.astro";
 const { title } = Astro.props;
 ---
 
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
 
@@ -62,6 +62,11 @@ const { title } = Astro.props;
     <Footer />
   </body>
 </html>
+
+<script>
+  import { initLang } from "../data/i18n.js";
+  initLang();
+</script>
 
 <style>
   @view-transition {

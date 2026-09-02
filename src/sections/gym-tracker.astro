@@ -1,5 +1,13 @@
 ---
 import { ASSET_BY_KEY, ASSET_BY_NAME } from "../data/exercise-map.js";
+import { CATALOG } from "../data/exercise-catalog.js";
+import {
+  UI,
+  GROUP_LABELS,
+  GROUP_MUSCLES,
+  EQUIPO_META,
+  EQUIPOS,
+} from "../data/i18n.js";
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwAzgf3dkXJLt0Yhh9l93sBkL1GVhwZ8jekaj6kVT8D_m2QLNXvw3UNc-aCGuJR135KCA/exec";
@@ -9,10 +17,10 @@ const API_URL =
   <div class="tracker-header flex-column">
     <p class="tracker-eyebrow flex-row">
       <img src="/favicon.svg" alt="" aria-hidden="true" class="brand-icon" />
-      <span id="eyebrow-count">— grupos · — ejercicios</span>
+      <span id="eyebrow-count">—</span>
     </p>
-    <h2>Mi Rutina</h2>
-    <p class="tracker-sub">Pesos y series actuales</p>
+    <h2 data-i18n="heading">My Routine</h2>
+    <p class="tracker-sub" data-i18n="sub">Current weights &amp; sets</p>
   </div>
 
   <div class="select-wrap">
@@ -23,7 +31,7 @@ const API_URL =
       tabindex="-1"
       disabled
     >
-      <option>Cargando...</option>
+      <option>—</option>
     </select>
     <button
       type="button"
@@ -31,10 +39,11 @@ const API_URL =
       class="select-trigger"
       aria-haspopup="listbox"
       aria-expanded="false"
-      aria-label="Seleccionar grupo muscular"
+      aria-label="Select muscle group"
+      data-i18n-aria="select_group_aria"
       disabled
     >
-      <span id="grupo-trigger-label">Cargando...</span>
+      <span id="grupo-trigger-label">—</span>
       <i class="bi bi-chevron-down"></i>
     </button>
     <div
@@ -59,47 +68,85 @@ const API_URL =
     tabindex="-1"
   >
     <div class="modal-head flex-row">
-      <h3 id="modal-title">Nuevo ejercicio</h3>
-      <button class="btn-modal-close" aria-label="Cerrar"
+      <h3 id="modal-title" data-i18n="modal_title">New exercise</h3>
+      <button class="btn-modal-close" aria-label="Close" data-i18n-aria="close_aria"
         ><i class="bi bi-x-lg"></i></button
       >
     </div>
-    <form id="form-create-modal">
-      <div class="edit-fields flex-row">
-        <label class="edit-field flex-column edit-field--full">
-          <span>Nombre</span>
-          <input type="text" name="nombre" placeholder="Ej: Press banca" required />
-        </label>
-        <label class="edit-field flex-column edit-field--full">
-          <span>Grupo muscular</span>
-          <div class="combo-field" data-type="grupo">
-            <input type="text" class="combo-input" placeholder="Seleccionar o crear grupo..." autocomplete="off" spellcheck="false" />
-            <input type="hidden" name="grupo_id" data-combo-hidden value="" />
-          </div>
-        </label>
-        <label class="edit-field flex-column edit-field--full">
-          <span>Equipo</span>
-          <div class="combo-field" data-type="equipo">
-            <input type="text" class="combo-input" value="barra" autocomplete="off" spellcheck="false" />
-            <input type="hidden" name="equipo" data-combo-hidden value="barra" />
-          </div>
-        </label>
-        <label class="edit-field flex-column">
-          <span>Series</span>
-          <input type="number" name="series" value="3" min="1" max="20" />
-        </label>
-        <label class="edit-field flex-column">
-          <span>Reps</span>
-          <input type="number" name="reps" value="10" min="1" max="100" />
-        </label>
-        <label class="edit-field flex-column">
-          <span>Peso</span>
-          <input type="text" name="peso" placeholder="—" />
-        </label>
+
+    <form id="form-create-modal" class="flex-column">
+      <input type="hidden" name="nombre" value="" />
+      <input type="hidden" name="equipo" value="" />
+      <input type="hidden" name="slug" value="" />
+
+      {/* ── STEP 1: catalog picker ── */}
+      <div id="cat-picker" class="cat-picker flex-column">
+        <div class="cat-search-row flex-row">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            id="cat-search"
+            class="cat-search"
+            placeholder="Search exercise…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <div id="cat-muscles" class="cat-muscles flex-row"></div>
+        <div id="cat-results" class="cat-results"></div>
       </div>
+
+      {/* ── STEP 2: selected exercise + details ── */}
+      <div id="cat-detail" class="cat-detail flex-column" hidden>
+        <div class="cat-selected flex-row">
+          <div class="cat-selected-fig" id="cat-selected-fig">
+            <img id="cat-selected-img" class="card-figure-img" alt="" width="512" height="512" />
+          </div>
+          <div class="cat-selected-meta flex-column">
+            <span id="cat-selected-name" class="cat-selected-name"></span>
+            <span id="cat-selected-equip" class="badge"></span>
+          </div>
+          <button type="button" id="cat-change" class="btn-cancel-create">
+            <span data-i18n="change_exercise">Change</span>
+          </button>
+        </div>
+
+        <div class="edit-fields flex-row">
+          <label class="edit-field flex-column edit-field--full" id="field-grupo">
+            <span data-i18n="field_group">Muscle group</span>
+            <div class="combo-field" data-type="grupo">
+              <input
+                type="text"
+                class="combo-input"
+                placeholder="Select or create group…"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <input type="hidden" name="grupo_id" data-combo-hidden value="" />
+            </div>
+          </label>
+          <label class="edit-field flex-column">
+            <span data-i18n="field_sets">Sets</span>
+            <input type="number" name="series" value="3" min="1" max="20" />
+          </label>
+          <label class="edit-field flex-column">
+            <span data-i18n="field_reps">Reps</span>
+            <input type="number" name="reps" value="10" min="1" max="100" />
+          </label>
+          <label class="edit-field flex-column">
+            <span data-i18n="field_weight">Weight</span>
+            <input type="text" name="peso" placeholder="—" />
+          </label>
+        </div>
+      </div>
+
       <div class="edit-actions flex-row" style="margin-top:8px">
-        <button type="button" class="btn-cancel-create btn-modal-close">Cancelar</button>
-        <button type="submit" class="btn-save">Crear</button>
+        <button type="button" class="btn-cancel-create btn-modal-close">
+          <span data-i18n="btn_cancel">Cancel</span>
+        </button>
+        <button type="submit" class="btn-save" id="btn-submit-modal" disabled>
+          <span data-i18n="btn_create">Create</span>
+        </button>
       </div>
     </form>
   </div>
@@ -414,6 +461,7 @@ const API_URL =
   .badge {
     display: inline-flex;
     align-items: center;
+    gap: 4px;
     padding: 3px 9px;
     border-radius: var(--radius-pill);
     font-family: var(--font-mono);
@@ -842,6 +890,7 @@ const API_URL =
     max-height: 85vh;
     max-width: 480px;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 24px;
     width: 100%;
     box-shadow: var(--shadow-lg);
@@ -1018,9 +1067,248 @@ const API_URL =
       transform: translateY(6px);
     }
   }
+
+  /* ── CATALOG PICKER (modal) ── */
+  #form-create-modal {
+    gap: 14px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .cat-picker {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* las utilidades flex ponen display:flex y ganan al atributo [hidden] → forzar */
+  .cat-picker[hidden],
+  .cat-detail[hidden] {
+    display: none;
+  }
+
+  .cat-search-row {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    background: rgba(var(--rgb-white), 0.06);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 0 12px;
+  }
+
+  .cat-search-row .bi {
+    color: var(--clr-dark2);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .cat-search {
+    background: none;
+    border: none;
+    color: var(--clr-white);
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 12px 0;
+    width: 100%;
+  }
+
+  .cat-search:focus {
+    outline: none;
+  }
+
+  .cat-search::placeholder {
+    color: rgba(var(--rgb-white), 0.3);
+  }
+
+  .cat-muscles {
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cat-muscles::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-chip {
+    background: rgba(var(--rgb-white), 0.05);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-pill);
+    color: var(--clr-dark2);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 6px 12px;
+    text-transform: uppercase;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+
+  .cat-chip[aria-pressed='true'] {
+    background: var(--clr-white);
+    border-color: var(--clr-white);
+    color: var(--clr-dark);
+  }
+
+  .cat-results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 46vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px;
+  }
+
+  .cat-result {
+    align-items: center;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding: 12px 10px;
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .cat-result-name {
+    overflow-wrap: anywhere;
+  }
+
+  .cat-result img {
+    height: 66px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    opacity: 0.92;
+    pointer-events: none;
+  }
+
+  .cat-result-name {
+    color: var(--clr-white);
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .cat-result-equip {
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .cat-empty {
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    grid-column: 1 / -1;
+    letter-spacing: 0.1em;
+    padding: 30px 0;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* selected preview + details */
+  .cat-detail {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 14px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .edit-actions {
+    width: 100%;
+  }
+
+  .cat-selected {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    background: rgba(var(--rgb-white), 0.05);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+  }
+
+  .cat-selected-fig {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 72px;
+    width: 72px;
+  }
+
+  .cat-selected-fig .card-figure-img {
+    height: 72px;
+  }
+
+  .cat-selected-meta {
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cat-selected-name {
+    color: var(--clr-white);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .cat-selected .btn-cancel-create {
+    flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    .cat-chip:hover {
+      border-color: var(--border-hover);
+      color: var(--clr-white);
+    }
+
+    .cat-result:hover {
+      background: rgba(var(--rgb-white), 0.08);
+      border-color: var(--border-hover);
+    }
+
+    .cat-result:hover img {
+      opacity: 1;
+    }
+  }
+
+  @media (min-width: 750px) {
+    .cat-results {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
 </style>
 
-<script define:vars={{ API_URL, ASSET_BY_KEY, ASSET_BY_NAME }}>
+<script define:vars={{ API_URL, ASSET_BY_KEY, ASSET_BY_NAME, CATALOG, UI, GROUP_LABELS, GROUP_MUSCLES, EQUIPO_META, EQUIPOS }}>
   /* ── EXERCISE ASSETS (ilustraciones @bryllim/workout-guide, CC BY-SA 4.0) ── */
   function normKey(str) {
     return String(str ?? "")
@@ -1031,10 +1319,55 @@ const API_URL =
       .replace(/\s+/g, " ");
   }
 
+  /* ── I18N RUNTIME (idioma compartido con el layout via localStorage + evento) ── */
+  const LANG_KEY = "macv_lang";
+  let LANG = (() => {
+    try {
+      return localStorage.getItem(LANG_KEY) === "es" ? "es" : "en";
+    } catch {
+      return "en";
+    }
+  })();
+  const t = (k) => UI[LANG][k] ?? k;
+
+  /* ── CATÁLOGO (índices cliente) ── */
+  const CAT_BY_SLUG = Object.fromEntries(CATALOG.map((x) => [x.slug, x]));
+  // músculos únicos (orden de aparición) para los chips del selector
+  const MUSCLES = [];
+  const MUSCLE_LABEL = {};
+  for (const x of CATALOG) {
+    if (!MUSCLE_LABEL[x.muscle]) {
+      MUSCLE_LABEL[x.muscle] = { en: x.muscle, es: x.muscleEs };
+      MUSCLES.push(x.muscle);
+    }
+  }
+
   function resolveAssetSlug(nombre, equipo) {
     const byKey = ASSET_BY_KEY[`${normKey(nombre)}|${normKey(equipo)}`];
-    if (byKey) return byKey.slug;
+    if (byKey) return byKey;
     return ASSET_BY_NAME[normKey(nombre)] ?? null;
+  }
+
+  /* ── ETIQUETAS BILINGÜES ── */
+  function catItemFor(ej) {
+    const slug = resolveAssetSlug(ej.nombre, ej.equipo);
+    return slug ? CAT_BY_SLUG[slug] ?? null : null;
+  }
+  // nombre oficial en el idioma activo; si no está en catálogo, se muestra crudo
+  function displayName(ej) {
+    const it = catItemFor(ej);
+    return it ? it[LANG] : ej.nombre;
+  }
+  function groupLabel(id, nombre) {
+    return GROUP_LABELS[id]?.[LANG] ?? nombre ?? id;
+  }
+  function equipMeta(token) {
+    return (
+      EQUIPO_META[normKey(token)] ?? { en: token, es: token, icon: "bi-dot" }
+    );
+  }
+  function equipLabel(token) {
+    return equipMeta(token)[LANG];
   }
 
   function buildFigureHtml(ej) {
@@ -1061,7 +1394,10 @@ const API_URL =
   }
 
   function animateFigure(card) {
-    const fig = card.querySelector(".card-figure");
+    playFig(card.querySelector(".card-figure"));
+  }
+
+  function playFig(fig) {
     const img = fig?.querySelector(".card-figure-img");
     if (!fig || !img || fig.dataset.animating) return;
     const slug = fig.dataset.slug;
@@ -1086,14 +1422,6 @@ const API_URL =
   }
 
   /* ── CONSTANTS ── */
-  const EQUIPO_META = {
-    barra: { label: "BAR", icon: "bi-dash-lg" },
-    mancuerna: { label: "MAN", icon: "bi-plus-lg" },
-    máquina: { label: "MAQ", icon: "bi-gear-fill" },
-    disco: { label: "DISC", icon: "bi-record-circle-fill" },
-    corporal: { label: "BODY", icon: "bi-person-fill" },
-  };
-  const EQUIPOS = ["barra", "mancuerna", "máquina", "disco", "corporal"];
   const CACHE_KEY = "macv_gym_v1";
 
   /* ── CACHE ── */
@@ -1155,7 +1483,10 @@ const API_URL =
   function getComboOptions(type) {
     if (type === "equipo") return EQUIPOS.map((e) => ({ value: e, label: e }));
     if (type === "grupo")
-      return (gymData || []).map((g) => ({ value: g.id, label: g.nombre }));
+      return (gymData || []).map((g) => ({
+        value: g.id,
+        label: groupLabel(g.id, g.nombre),
+      }));
     return [];
   }
 
@@ -1240,7 +1571,7 @@ const API_URL =
       const count = document.getElementById("eyebrow-count");
       const total = gymData.reduce((s, g) => s + g.ejercicios.length, 0);
       if (count)
-        count.textContent = `${gymData.length} grupos · ${total} ejercicios`;
+        count.textContent = `${gymData.length} ${t("groups_word")} · ${total} ${t("exercises_word")}`;
     }
 
     closeComboPortal();
@@ -1283,15 +1614,6 @@ const API_URL =
   });
 
   /* ── BUILD CARD ── */
-  function buildComboField(type, value) {
-    return `
-      <div class="combo-field" data-type="${type}">
-        <input type="text" class="combo-input" value="${value}" autocomplete="off" spellcheck="false">
-        <input type="hidden" name="${type === "equipo" ? "equipo" : "grupo_id"}" data-combo-hidden value="${value}">
-      </div>
-    `;
-  }
-
   // GSheets devuelve celdas tipeadas como fecha en formato ISO (ej. "2026-05-07T05:00:00.000Z").
   // El peso nunca es una fecha → lo tratamos como vacío para no mostrar basura.
   function cleanPeso(v) {
@@ -1309,83 +1631,148 @@ const API_URL =
     return `
       <div class="metric flex-column">
         <span class="metric-val">${ej.series ?? "—"}</span>
-        <span class="metric-lbl">series</span>
+        <span class="metric-lbl">${t("lbl_sets")}</span>
       </div>
       <div class="metric flex-column">
         <span class="metric-val">${ej.reps ?? "—"}</span>
-        <span class="metric-lbl">reps</span>
+        <span class="metric-lbl">${t("lbl_reps")}</span>
       </div>
       <div class="metric flex-column">
         <span class="metric-val">${pesoVal}</span>
-        <span class="metric-lbl">peso</span>
+        <span class="metric-lbl">${t("lbl_weight")}</span>
       </div>
     `;
   }
 
+  // escapa comillas para atributos HTML (nombres oficiales pueden traer comillas, p.ej. Captain's)
+  function attr(v) {
+    return String(v ?? "").replace(/"/g, "&quot;");
+  }
+
   function buildCard(grupoId, grupoNombre, ej) {
     const s = slug(ej.equipo);
-    const meta = EQUIPO_META[ej.equipo] ?? {
-      label: ej.equipo.toUpperCase(),
-      icon: "bi-dot",
-    };
+    const meta = equipMeta(ej.equipo);
     return `
       <article
         class="exercise-card flex-column equipo-${s}"
-        data-grupo="${grupoId}"
-        data-nombre="${ej.nombre}"
-        data-unidad="${ej.unidad ?? ""}"
+        data-grupo="${attr(grupoId)}"
+        data-nombre="${attr(ej.nombre)}"
+        data-unidad="${attr(ej.unidad ?? "")}"
       >
         <div class="card-top flex-column">
           <div class="card-top-row flex-row">
-            <span class="card-grupo">${grupoNombre}</span>
+            <span class="card-grupo">${groupLabel(grupoId, grupoNombre)}</span>
             <div class="card-top-right flex-row">
-              <span class="badge badge-${s}">${meta.label}</span>
-              <button type="button" class="drag-handle" aria-label="Reordenar" tabindex="-1">
+              <span class="badge badge-${s} flex-row"><i class="bi ${meta.icon}"></i>${equipLabel(ej.equipo)}</span>
+              <button type="button" class="drag-handle" aria-label="${t("reorder_aria")}" tabindex="-1">
                 <i class="bi bi-grip-vertical"></i>
               </button>
             </div>
           </div>
           ${buildFigureHtml(ej)}
-          <h4>${ej.nombre}</h4>
+          <h4>${displayName(ej)}</h4>
         </div>
         <div class="card-metrics flex-row">${buildMetricsHtml(ej)}</div>
-        <form class="card-edit-form" hidden>
-          <div class="edit-fields flex-row">
-            <label class="edit-field flex-column edit-field--full">
-              <span>Nombre</span>
-              <input type="text" name="nombre" value="${ej.nombre}" required>
-            </label>
-            <label class="edit-field flex-column edit-field--full">
-              <span>Equipo</span>
-              ${buildComboField("equipo", ej.equipo)}
-            </label>
-            <label class="edit-field flex-column">
-              <span>Series</span>
-              <input type="number" name="series" value="${ej.series}" min="1" max="20">
-            </label>
-            <label class="edit-field flex-column">
-              <span>Reps</span>
-              <input type="number" name="reps" value="${ej.reps}" min="1" max="100">
-            </label>
-            <label class="edit-field flex-column">
-              <span>Peso</span>
-              <input type="text" name="peso" value="${ej.peso ?? ""}">
-            </label>
-          </div>
-          <div class="edit-actions flex-row">
-            <button type="button" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-save">Guardar</button>
-          </div>
-        </form>
       </article>
     `;
   }
 
-  /* ── MODAL ── */
+  /* ── MODAL (crear/editar con selector de catálogo) ── */
   const modal = document.getElementById("modal-create");
+  const catPicker = document.getElementById("cat-picker");
+  const catDetail = document.getElementById("cat-detail");
+  const catSearch = document.getElementById("cat-search");
+  const catResults = document.getElementById("cat-results");
+  const catMuscles = document.getElementById("cat-muscles");
+  const catSelImg = document.getElementById("cat-selected-img");
+  const catSelFig = document.getElementById("cat-selected-fig");
+  const catSelName = document.getElementById("cat-selected-name");
+  const catSelEquip = document.getElementById("cat-selected-equip");
+  const modalForm = document.getElementById("form-create-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const submitBtn = document.getElementById("btn-submit-modal");
+  const fieldGrupo = document.getElementById("field-grupo");
 
-  function openModal() {
-    if (!modal) return;
+  let modalMode = "create";
+  let editCard = null;
+  let selected = null; // { slug, nombre (EN oficial), equipo (token) }
+  let muscleFilter = "all";
+
+  function renderMuscleChips() {
+    catMuscles.innerHTML = [
+      `<button type="button" class="cat-chip" data-muscle="all" aria-pressed="${muscleFilter === "all"}">${t("all_muscles")}</button>`,
+      ...MUSCLES.map(
+        (m) =>
+          `<button type="button" class="cat-chip" data-muscle="${m}" aria-pressed="${muscleFilter === m}">${MUSCLE_LABEL[m][LANG]}</button>`,
+      ),
+    ].join("");
+  }
+
+  function renderCatResults() {
+    const q = normKey(catSearch.value);
+    const list = CATALOG.filter((x) => {
+      if (muscleFilter !== "all" && x.muscle !== muscleFilter) return false;
+      if (!q) return true;
+      return normKey(x.en).includes(q) || normKey(x.es).includes(q);
+    }).slice(0, 120);
+
+    if (!list.length) {
+      catResults.innerHTML = `<p class="cat-empty">${t("no_results")}</p>`;
+      return;
+    }
+    catResults.innerHTML = list
+      .map(
+        (x) => `
+      <button type="button" class="cat-result" data-slug="${x.slug}">
+        <img src="/exercises/${x.slug}/frame-1.png" alt="" loading="lazy" decoding="async" width="512" height="512">
+        <span class="cat-result-name">${x[LANG]}</span>
+        <span class="cat-result-equip">${equipLabel(x.equipTok)}</span>
+      </button>`,
+      )
+      .join("");
+  }
+
+  function selectCatItem(slugv) {
+    const it = CAT_BY_SLUG[slugv];
+    if (!it) return;
+    selected = { slug: it.slug, nombre: it.en, equipo: it.equipTok };
+    modalForm.elements.nombre.value = it.en;
+    modalForm.elements.equipo.value = it.equipTok;
+    modalForm.elements.slug.value = it.slug;
+    catSelImg.src = `/exercises/${it.slug}/frame-1.png`;
+    catSelFig.dataset.slug = it.slug;
+    catSelFig.classList.add("card-figure");
+    catSelName.textContent = it[LANG];
+    catSelEquip.innerHTML = `<i class="bi ${equipMeta(it.equipTok).icon}"></i>${equipLabel(it.equipTok)}`;
+    preloadFrames(it.slug);
+    catPicker.hidden = true;
+    catDetail.hidden = false;
+    submitBtn.disabled = false;
+    playFig(catSelFig);
+  }
+
+  function clearSelection() {
+    selected = null;
+    modalForm.elements.nombre.value = "";
+    modalForm.elements.equipo.value = "";
+    modalForm.elements.slug.value = "";
+    catDetail.hidden = true;
+    catPicker.hidden = false;
+    submitBtn.disabled = true;
+    catSearch.value = "";
+    catSearch.placeholder = t("ph_search");
+    muscleFilter = "all";
+    renderMuscleChips();
+    renderCatResults();
+  }
+
+  function setSubmitLabel(key) {
+    const span = submitBtn.querySelector("span");
+    span.dataset.i18n = key;
+    span.textContent = t(key);
+  }
+
+  function showModal() {
     modal.hidden = false;
     document.body.style.overflow = "hidden";
     modal.querySelector(".modal-box")?.focus();
@@ -1395,20 +1782,88 @@ const API_URL =
     if (!modal) return;
     modal.hidden = true;
     document.body.style.overflow = "";
-    document.getElementById("form-create-modal")?.reset();
-    // Reset combo display inputs
-    const grupoCombo = modal.querySelector(".combo-field[data-type=grupo]");
-    if (grupoCombo) {
-      grupoCombo.querySelector(".combo-input").value = "";
-      grupoCombo.querySelector("[data-combo-hidden]").value = "";
-    }
-    const equipoCombo = modal.querySelector(".combo-field[data-type=equipo]");
-    if (equipoCombo) {
-      equipoCombo.querySelector(".combo-input").value = "barra";
-      equipoCombo.querySelector("[data-combo-hidden]").value = "barra";
-    }
     closeComboPortal();
   }
+
+  function openModal() {
+    // crear
+    if (!modal) return;
+    modalMode = "create";
+    editCard = null;
+    modalTitle.dataset.i18n = "modal_title";
+    modalTitle.textContent = t("modal_title");
+    setSubmitLabel("btn_create");
+    modalForm.reset();
+    fieldGrupo.hidden = false;
+    const gc = modal.querySelector(".combo-field[data-type=grupo]");
+    if (gc) {
+      gc.querySelector(".combo-input").value = "";
+      gc.querySelector(".combo-input").placeholder = t("ph_group");
+      gc.querySelector("[data-combo-hidden]").value = "";
+    }
+    clearSelection();
+    showModal();
+  }
+
+  function openEditModal(card) {
+    // editar (grupo fijo)
+    if (!modal) return;
+    modalMode = "edit";
+    editCard = card;
+    modalTitle.dataset.i18n = "edit_title";
+    modalTitle.textContent = t("edit_title");
+    setSubmitLabel("btn_save");
+    modalForm.reset();
+    fieldGrupo.hidden = true;
+
+    const grupoId = card.dataset.grupo;
+    const oldNombre = card.dataset.nombre;
+    const g = (gymData || []).find((x) => x.id === grupoId);
+    const ej =
+      g?.ejercicios.find((e) => e.nombre === oldNombre) ??
+      { nombre: oldNombre, equipo: "", series: "", reps: "", peso: "" };
+
+    modalForm.elements.grupo_id.value = grupoId;
+    modalForm.elements.series.value = ej.series ?? "";
+    modalForm.elements.reps.value = ej.reps ?? "";
+    modalForm.elements.peso.value = cleanPeso(ej.peso) ?? "";
+
+    const it = catItemFor(ej);
+    if (it) {
+      selectCatItem(it.slug);
+    } else {
+      selected = { slug: null, nombre: ej.nombre, equipo: ej.equipo };
+      modalForm.elements.nombre.value = ej.nombre;
+      modalForm.elements.equipo.value = ej.equipo;
+      catSelImg.removeAttribute("src");
+      catSelFig.dataset.slug = "";
+      catSelName.textContent = ej.nombre;
+      catSelEquip.innerHTML = `<i class="bi ${equipMeta(ej.equipo).icon}"></i>${equipLabel(ej.equipo)}`;
+      catPicker.hidden = true;
+      catDetail.hidden = false;
+      submitBtn.disabled = false;
+    }
+    showModal();
+  }
+
+  // eventos del picker
+  catSearch?.addEventListener("input", renderCatResults);
+  catMuscles?.addEventListener("click", (e) => {
+    const chip = e.target.closest(".cat-chip");
+    if (!chip) return;
+    muscleFilter = chip.dataset.muscle;
+    renderMuscleChips();
+    renderCatResults();
+  });
+  catResults?.addEventListener("click", (e) => {
+    const r = e.target.closest(".cat-result");
+    if (r) selectCatItem(r.dataset.slug);
+  });
+  document.getElementById("cat-change")?.addEventListener("click", () => {
+    clearSelection();
+    catSearch.focus();
+  });
+  catSelFig?.addEventListener("click", () => playFig(catSelFig));
 
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
@@ -1423,20 +1878,6 @@ const API_URL =
     }
   });
   window.addEventListener("gym:open-create", openModal);
-
-  /* ── EDIT CARD ── */
-  function openEdit(card) {
-    card.classList.add("editing");
-    card.querySelector(".card-metrics").hidden = true;
-    card.querySelector(".card-edit-form").hidden = false;
-  }
-
-  function closeEdit(card) {
-    card.classList.remove("editing");
-    card.querySelector(".card-metrics").hidden = false;
-    card.querySelector(".card-edit-form").hidden = true;
-    closeComboPortal();
-  }
 
   /* ── PILLS ── */
   function showPill(msg, type = "ok") {
@@ -1467,80 +1908,64 @@ const API_URL =
     return json;
   }
 
-  function saveEdit(form) {
-    const card = form.closest(".exercise-card");
-    const payload = {
-      action: "update",
-      grupo_id: card.dataset.grupo,
-      old_nombre: card.dataset.nombre,
-      nombre: form.elements.nombre.value.trim(),
-      equipo: form.elements.equipo.value,
-      series: Number(form.elements.series.value),
-      reps: Number(form.elements.reps.value),
-      peso: form.elements.peso.value || null,
-    };
+  function submitModal() {
+    if (!selected || !selected.nombre) return;
+    const series = Number(modalForm.elements.series.value);
+    const reps = Number(modalForm.elements.reps.value);
+    const peso = modalForm.elements.peso.value.trim() || null;
 
-    updateCacheExercise(payload.grupo_id, payload.old_nombre, {
-      nombre: payload.nombre,
-      equipo: payload.equipo,
-      series: payload.series,
-      reps: payload.reps,
-      peso: payload.peso,
-    });
+    if (modalMode === "edit" && editCard) {
+      const grupoId = editCard.dataset.grupo;
+      const oldNombre = editCard.dataset.nombre;
+      updateCacheExercise(grupoId, oldNombre, {
+        nombre: selected.nombre,
+        equipo: selected.equipo,
+        series,
+        reps,
+        peso,
+      });
+      closeModal();
+      if (gymData) renderGrupos(gymData);
+      postData({
+        action: "update",
+        grupo_id: grupoId,
+        old_nombre: oldNombre,
+        nombre: selected.nombre,
+        equipo: selected.equipo,
+        series,
+        reps,
+        peso,
+      })
+        .then(() => showPill(t("pill_edited")))
+        .catch(() => showPill(t("pill_err_save"), "err"));
+      return;
+    }
 
-    card.dataset.nombre = payload.nombre;
-    const s = slug(payload.equipo);
-    const meta = EQUIPO_META[payload.equipo] ?? {
-      label: payload.equipo.toUpperCase(),
-      icon: "bi-dot",
-    };
-    card.className = `exercise-card flex-column equipo-${s} editing`;
-    card.querySelector(".card-top h4").textContent = payload.nombre;
-    const badge = card.querySelector(".badge");
-    badge.className = `badge badge-${s}`;
-    badge.innerHTML = `<i class="bi ${meta.icon}"></i>${meta.label}`;
-    card.querySelector(".card-metrics").innerHTML = buildMetricsHtml({
-      series: payload.series,
-      reps: payload.reps,
-      peso: payload.peso,
-      unidad: card.dataset.unidad,
-    });
-    closeEdit(card);
-
-    postData(payload)
-      .then(() => showPill("Ejercicio editado"))
-      .catch(() => showPill("Error al guardar", "err"));
-  }
-
-  function createEjercicio(form) {
-    const grupoId = form.elements.grupo_id.value;
+    // crear
+    const grupoId = modalForm.elements.grupo_id.value;
     const grupoNombre =
-      form.querySelector("[data-type='grupo'] .combo-input")?.value.trim() ||
+      modal.querySelector("[data-type='grupo'] .combo-input")?.value.trim() ||
       grupoId;
+    if (!grupoId) return;
     const ej = {
-      nombre: form.elements.nombre.value.trim(),
-      equipo: form.elements.equipo.value,
-      series: Number(form.elements.series.value),
-      reps: Number(form.elements.reps.value),
-      peso: form.elements.peso.value || null,
+      nombre: selected.nombre,
+      equipo: selected.equipo,
+      series,
+      reps,
+      peso,
       unidad: null,
     };
-    if (!ej.nombre || !grupoId) return;
-
     addCacheExercise(grupoId, ej);
-    document
-      .querySelector(`#${grupoId} .exercise-grid`)
-      ?.insertAdjacentHTML("beforeend", buildCard(grupoId, grupoNombre, ej));
     closeModal();
-
+    if (gymData) renderGrupos(gymData);
     postData({
       action: "create",
       grupo_id: grupoId,
       grupo_nombre: grupoNombre,
       ...ej,
     })
-      .then(() => showPill("Ejercicio creado"))
-      .catch(() => showPill("Error al crear", "err"));
+      .then(() => showPill(t("pill_created")))
+      .catch(() => showPill(t("pill_err_create"), "err"));
   }
 
   /* ── DATA ── */
@@ -1580,15 +2005,15 @@ const API_URL =
 
     const total = grupos.reduce((s, g) => s + g.ejercicios.length, 0);
     document.getElementById("eyebrow-count").textContent =
-      `${grupos.length} grupos · ${total} ejercicios`;
+      `${grupos.length} ${t("groups_word")} · ${total} ${t("exercises_word")}`;
 
     select.disabled = false;
     select.innerHTML =
-      `<option value="todos"${showAll ? " selected" : ""}>Todos</option>` +
+      `<option value="todos"${showAll ? " selected" : ""}>${t("all")}</option>` +
       grupos
         .map(
           (g) =>
-            `<option value="${g.id}"${g.id === validId ? " selected" : ""}>${g.nombre}</option>`,
+            `<option value="${g.id}"${g.id === validId ? " selected" : ""}>${groupLabel(g.id, g.nombre)}</option>`,
         )
         .join("");
 
@@ -1628,7 +2053,7 @@ const API_URL =
       writeCache(cached);
       renderGrupos(cached);
     } else {
-      panelsEl.innerHTML = '<p class="tracker-loading">Cargando...</p>';
+      panelsEl.innerHTML = `<p class="tracker-loading">${t("loading")}</p>`;
       select.disabled = true;
     }
 
@@ -1651,8 +2076,8 @@ const API_URL =
     const menu = document.createElement("div");
     menu.className = "card-context-menu flex-column";
     menu.innerHTML = `
-      <button class="ctx-btn flex-row ctx-edit"><i class="bi bi-pencil-fill"></i>Editar</button>
-      <button class="ctx-btn flex-row ctx-delete"><i class="bi bi-trash3-fill"></i>Eliminar</button>
+      <button class="ctx-btn flex-row ctx-edit"><i class="bi bi-pencil-fill"></i>${t("btn_edit")}</button>
+      <button class="ctx-btn flex-row ctx-delete"><i class="bi bi-trash3-fill"></i>${t("btn_delete")}</button>
     `;
     document.body.appendChild(menu);
 
@@ -1669,7 +2094,7 @@ const API_URL =
     activeContextMenu = { menu, card };
 
     menu.querySelector(".ctx-edit").addEventListener("click", () => {
-      openEdit(card);
+      openEditModal(card);
       closeContextMenu();
     });
     menu.querySelector(".ctx-delete").addEventListener("click", () => {
@@ -1897,8 +2322,8 @@ const API_URL =
     );
     reorderCache(grupoId, orden);
     postData({ action: "reorder", grupo_id: grupoId, orden })
-      .then(() => showPill("Orden guardado"))
-      .catch(() => showPill("Error al ordenar", "err"));
+      .then(() => showPill(t("pill_reorder")))
+      .catch(() => showPill(t("pill_err_reorder"), "err"));
   }
 
   panels.addEventListener("pointerup", endDrag);
@@ -1935,29 +2360,19 @@ const API_URL =
     const count = document.getElementById("eyebrow-count");
     const total = gymData.reduce((s, g) => s + g.ejercicios.length, 0);
     if (count)
-      count.textContent = `${gymData.length} grupos · ${total} ejercicios`;
+      count.textContent = `${gymData.length} ${t("groups_word")} · ${total} ${t("exercises_word")}`;
 
     postData({ action: "delete", grupo_id: grupoId, nombre })
-      .then(() => showPill("Ejercicio eliminado"))
-      .catch(() => showPill("Error al eliminar", "err"));
+      .then(() => showPill(t("pill_deleted")))
+      .catch(() => showPill(t("pill_err_delete"), "err"));
   }
 
   /* ── EVENT DELEGATION ── */
-  panels.addEventListener("click", (e) => {
-    if (e.target.closest(".btn-cancel"))
-      closeEdit(e.target.closest(".exercise-card"));
-  });
-
-  panels.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (e.target.matches(".card-edit-form")) saveEdit(e.target);
-  });
-
   document
     .getElementById("form-create-modal")
     ?.addEventListener("submit", (e) => {
       e.preventDefault();
-      createEjercicio(e.target);
+      submitModal();
     });
 
   document.getElementById("grupo-select").addEventListener("change", (e) => {
@@ -2025,6 +2440,34 @@ const API_URL =
       if (e.key === "Escape") closeGrupoList();
     });
   })();
+
+  /* ── CAMBIO DE IDIOMA EN VIVO ── */
+  window.addEventListener("macv:lang", () => {
+    LANG = (() => {
+      try {
+        return localStorage.getItem(LANG_KEY) === "es" ? "es" : "en";
+      } catch {
+        return "en";
+      }
+    })();
+    if (gymData) renderGrupos(gymData);
+    // refresca el modal si está abierto
+    if (modal && !modal.hidden) {
+      modalTitle.textContent = t(modalTitle.dataset.i18n || "modal_title");
+      const span = submitBtn.querySelector("span");
+      span.textContent = t(span.dataset.i18n || "btn_create");
+      catSearch.placeholder = t("ph_search");
+      const gci = modal.querySelector(".combo-field[data-type=grupo] .combo-input");
+      if (gci) gci.placeholder = t("ph_group");
+      renderMuscleChips();
+      renderCatResults();
+      if (selected) {
+        const it = selected.slug ? CAT_BY_SLUG[selected.slug] : null;
+        catSelName.textContent = it ? it[LANG] : selected.nombre;
+        catSelEquip.innerHTML = `<i class="bi ${equipMeta(selected.equipo).icon}"></i>${equipLabel(selected.equipo)}`;
+      }
+    }
+  });
 
   loadData().catch(console.error);
 </script>

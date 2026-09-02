@@ -2,13 +2,25 @@
 ---
 
 <header class="flex-row">
-  <a href="/" class="brand flex-row" aria-label="Inicio">
+  <a href="/" class="brand flex-row" aria-label="Home" data-i18n-aria="brand_home_aria">
     <img src="/favicon.svg" alt="" aria-hidden="true" class="brand-icon" />
     <span>MACV GYM</span>
   </a>
-  <button id="btn-open-create" class="btn-new-ex" aria-label="Nuevo ejercicio">
-    <i class="bi bi-plus-lg"></i>
-  </button>
+  <div class="header-actions flex-row">
+    <button
+      type="button"
+      class="btn-lang"
+      data-lang-toggle
+      aria-label="Switch language"
+      data-i18n-aria="lang_toggle_aria"
+    >
+      <i class="bi bi-translate"></i>
+      <span data-lang-current>EN</span>
+    </button>
+    <button id="btn-open-create" class="btn-new-ex" aria-label="New exercise" data-i18n-aria="new_ex_aria">
+      <i class="bi bi-plus-lg"></i>
+    </button>
+  </div>
 </header>
 
 <style>
@@ -46,6 +58,11 @@
     width: auto;
   }
 
+  .header-actions {
+    align-items: center;
+    gap: 8px;
+  }
+
   .btn-new-ex {
     background: rgba(var(--rgb-accent), 0.12);
     border: 1px solid rgba(var(--rgb-accent), 0.3);
@@ -60,6 +77,29 @@
     transition: var(--transition);
   }
 
+  .btn-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    height: 36px;
+    line-height: 1;
+    padding: 0 12px;
+    transition: var(--transition);
+  }
+
+  .btn-lang .bi {
+    font-size: 0.9rem;
+  }
+
   @media (hover: hover) {
     header:hover {
       background: rgba(255, 255, 255, 0.11);
@@ -69,6 +109,12 @@
     .btn-new-ex:hover {
       background: rgba(var(--rgb-accent), 0.22);
       border-color: rgba(var(--rgb-accent), 0.5);
+    }
+
+    .btn-lang:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: var(--clr-white);
     }
   }
 
