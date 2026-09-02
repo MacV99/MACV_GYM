@@ -55,6 +55,10 @@ const API_URL =
   </div>
 
   <div id="panels" class="flex-column"></div>
+
+  <p id="tracker-hint" class="tracker-hint" data-i18n="hint_pick" hidden>
+    Choose a group to see your exercises
+  </p>
 </section>
 
 <div id="gym-pills" class="flex-column" aria-live="polite" aria-atomic="false"></div>
@@ -199,11 +203,62 @@ const API_URL =
     text-transform: uppercase;
   }
 
+  /* ── HINT (sin grupo seleccionado) ── */
+  .tracker-hint {
+    color: var(--clr-dark2);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 40px 16px;
+  }
+
+  .tracker-hint[hidden] {
+    display: none;
+  }
+
   /* ── SELECT (custom dropdown, monocromo) ── */
   .select-wrap {
     position: relative;
     width: 100%;
     max-width: 320px;
+  }
+
+  /* ── MOBILE: al elegir grupo, colapsa cabecera y fija el selector arriba ── */
+  @media (max-width: 749px) {
+    /* estado inicial (sin grupo): bloque centrado verticalmente en la pantalla */
+    #tracker.mode-intro {
+      min-height: calc(100dvh - 92px);
+      justify-content: center;
+      gap: 26px;
+      padding-top: 0;
+      padding-bottom: 40px;
+    }
+
+    #tracker.mode-intro .tracker-hint {
+      padding: 0 16px;
+    }
+
+    #tracker.mode-collapsed {
+      padding-top: 12px;
+      gap: 14px;
+    }
+
+    #tracker.mode-collapsed .tracker-header {
+      display: none;
+    }
+
+    #tracker.mode-collapsed .select-wrap {
+      position: sticky;
+      top: 80px;
+      z-index: 50;
+      max-width: none;
+      width: 100%;
+      margin: 0;
+      background: var(--clr-dark);
+      padding: 10px 0 12px;
+    }
   }
 
   /* nativo = fuente de verdad, oculto visualmente */
@@ -1426,6 +1481,8 @@ const API_URL =
 
   /* ── CACHE ── */
   let gymData = null;
+  // grupo activo del selector: null = sin inicializar, "" = ninguno (mobile), "todos" = all, o id
+  let currentGroup = null;
 
   function readCache() {
     try {
@@ -1995,13 +2052,45 @@ const API_URL =
     });
   }
 
+  function isDesktop() {
+    return window.matchMedia("(min-width: 750px)").matches;
+  }
+
+  // aplica el estado del grupo activo: paneles activos, modo drag, colapso (mobile) y hint
+  function applyGroupUI(val) {
+    const panelsEl = document.getElementById("panels");
+    const tracker = document.getElementById("tracker");
+    const hint = document.getElementById("tracker-hint");
+    const showAll = val === "todos";
+    const noneSel = val === "" || val == null;
+
+    panelsEl.classList.toggle("mode-single", !showAll && !noneSel);
+    // colapsa la cabecera al elegir grupo (los estilos solo aplican en mobile)
+    tracker.classList.toggle("mode-collapsed", !noneSel);
+    // estado inicial sin grupo: centra el bloque verticalmente (mobile)
+    tracker.classList.toggle("mode-intro", noneSel);
+    if (hint) hint.hidden = !noneSel;
+    document.querySelectorAll(".muscle-panel").forEach((p) => {
+      p.classList.toggle("active", showAll || p.id === val);
+    });
+  }
+
   function renderGrupos(grupos) {
     const panelsEl = document.getElementById("panels");
     const select = document.getElementById("grupo-select");
 
-    const curVal = select.value;
-    const validId = grupos.find((g) => g.id === curVal)?.id ?? null;
-    const showAll = !validId;
+    // inicializa/valida el grupo activo (mobile arranca sin selección; desktop en "todos")
+    if (currentGroup === null) currentGroup = isDesktop() ? "todos" : "";
+    if (
+      currentGroup &&
+      currentGroup !== "todos" &&
+      !grupos.some((g) => g.id === currentGroup)
+    ) {
+      currentGroup = isDesktop() ? "todos" : "";
+    }
+
+    const showAll = currentGroup === "todos";
+    const noneSel = currentGroup === "";
 
     const total = grupos.reduce((s, g) => s + g.ejercicios.length, 0);
     document.getElementById("eyebrow-count").textContent =
@@ -2009,21 +2098,19 @@ const API_URL =
 
     select.disabled = false;
     select.innerHTML =
+      `<option value=""${noneSel ? " selected" : ""} hidden>${t("pick_group")}</option>` +
       `<option value="todos"${showAll ? " selected" : ""}>${t("all")}</option>` +
       grupos
         .map(
           (g) =>
-            `<option value="${g.id}"${g.id === validId ? " selected" : ""}>${groupLabel(g.id, g.nombre)}</option>`,
+            `<option value="${g.id}"${g.id === currentGroup ? " selected" : ""}>${groupLabel(g.id, g.nombre)}</option>`,
         )
         .join("");
-
-    // arrastre solo en vista de una categoría
-    panelsEl.classList.toggle("mode-single", !showAll);
 
     panelsEl.innerHTML = grupos
       .map(
         (g) => `
-      <div id="${g.id}" class="muscle-panel${showAll || g.id === validId ? " active" : ""}" role="tabpanel">
+      <div id="${g.id}" class="muscle-panel${showAll || g.id === currentGroup ? " active" : ""}" role="tabpanel">
         <div class="exercise-grid flex-column">
           ${sortByOrden(g.ejercicios)
             .map((ej) => buildCard(g.id, g.nombre, ej))
@@ -2034,6 +2121,7 @@ const API_URL =
       )
       .join("");
 
+    applyGroupUI(currentGroup);
     syncCustomSelect();
   }
 
@@ -2376,13 +2464,12 @@ const API_URL =
     });
 
   document.getElementById("grupo-select").addEventListener("change", (e) => {
-    const val = e.target.value;
-    document
-      .getElementById("panels")
-      .classList.toggle("mode-single", val !== "todos");
-    document.querySelectorAll(".muscle-panel").forEach((p) => {
-      p.classList.toggle("active", val === "todos" || p.id === val);
-    });
+    currentGroup = e.target.value;
+    applyGroupUI(currentGroup);
+    // en mobile, al elegir grupo sube al tope para que el selector sticky quede arriba
+    if (currentGroup !== "" && !isDesktop()) {
+      window.scrollTo({ top: 0 });
+    }
   });
 
   /* ── CUSTOM SELECT (envuelve el <select> nativo, que sigue siendo el estado) ── */
@@ -2395,8 +2482,10 @@ const API_URL =
 
     trigger.disabled = select.disabled;
     const cur = select.value;
-    label.textContent = select.selectedOptions[0]?.textContent ?? "";
+    label.textContent = select.selectedOptions[0]?.textContent ?? t("pick_group");
+    // la opción placeholder (value "") no se lista en el dropdown
     list.innerHTML = Array.from(select.options)
+      .filter((o) => o.value !== "")
       .map(
         (o) =>
           `<button type="button" class="select-opt" role="option" data-value="${o.value}" aria-selected="${o.value === cur}">${o.textContent}</button>`,
